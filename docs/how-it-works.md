@@ -196,7 +196,41 @@ Hiding admin buttons in the browser is only for convenience. **These server chec
 
 ---
 
-## 6. Tests
+## 6. Households and members (Task 3)
+
+[server/routes/households.js](../server/routes/households.js)
+
+| Request | Who | What happens |
+|---|---|---|
+| `POST /api/households` | someone with no household | creates it; you become its **admin** |
+| `GET /api/household` | any member | the household, its members and its chores |
+| `POST /api/household/members` | admin | adds a registered person by email |
+| `DELETE /api/household/members/:id` | admin (someone else) or you (yourself) | remove / leave |
+| `POST /api/household/members/:id/make-admin` | admin | hand the admin role to someone |
+
+**Route parameters.** `:id` is a blank in the path. A request to `/api/household/members/7` gives the route `req.params.id = "7"`. It arrives as text, so we turn it into a number with `Number(...)`.
+
+**The "is this yours?" check.** Every route looks people up with `WHERE id = ? AND household_id = ?`, the second `?` being *your* household. If the person is in another household, the query finds nothing and we answer **404**. So an admin of one flat can't touch another flat just by guessing numbers. We use 404, not 403, so we don't even confirm that the person exists.
+
+**Leaving or being removed** (`removeFromHousehold`) runs three changes in one **transaction**:
+1. cancel every *pending* swap request where you're the asker or the one asked,
+2. your *unfinished* chores get `user_id = NULL`, shown as **Nobody** for the admin to reassign,
+3. you're taken out of the household, and your role goes back to `member`.
+
+Your *completed* chores keep your name, so the history stays true.
+
+**Make admin** is two `UPDATE`s inside a transaction: the other person becomes admin, and you become a member. A household always has exactly one admin. The admin can't leave until they've handed the role over ("Make someone else admin first.").
+
+**Say this:** "Every household route only looks inside the caller's own household, so other households' IDs simply aren't found. Changes that touch several rows, like leaving or transferring admin, run in a transaction."
+
+**Likely questions**
+- *What happens to a person's chores when they leave?* Unfinished ones become "Nobody" so the admin can reassign them. Finished ones stay in the history with their name.
+- *How do you make sure there's always one admin?* The admin can't leave or be removed, and transferring the role swaps both people in one transaction.
+- *Could a member remove another member?* No. The server checks the role and answers 403.
+
+---
+
+## 7. Tests
 
 `npm test` runs the files in `tests/` using Node's built-in test runner. Each test starts the real app on a random port with an empty in-memory database, sends real requests, and checks the answers. For example, "registering `Alex@Example.com` after `alex@example.com` gives 409".
 

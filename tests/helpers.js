@@ -39,7 +39,24 @@ export function client(base) {
   };
 }
 
-// Filled in by Task 3, once the household routes exist.
-export async function makeHousehold() {
-  throw new Error('makeHousehold is not implemented yet');
+// Registers everyone in `names` (email = lowercase name @example.com,
+// password "password123"). The first person creates "Flat 4B" and adds the
+// rest. Returns the logged-in clients and everyone's /api/me body.
+export async function makeHousehold(base, names, householdName = 'Flat 4B') {
+  const clients = [];
+  for (const name of names) {
+    const c = client(base);
+    await c.req('POST', '/api/register', {
+      name, email: `${name.toLowerCase()}@example.com`, password: 'password123',
+    });
+    clients.push(c);
+  }
+  const [admin, ...members] = clients;
+  await admin.req('POST', '/api/households', { name: householdName });
+  for (const name of names.slice(1)) {
+    await admin.req('POST', '/api/household/members', { email: `${name.toLowerCase()}@example.com` });
+  }
+  const users = [];
+  for (const c of clients) users.push((await c.req('GET', '/api/me')).body);
+  return { admin, members, users };
 }

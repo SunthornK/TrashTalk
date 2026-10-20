@@ -49,3 +49,11 @@ Full details are in the [design](superpowers/specs/2026-10-20-trashtalk-design.m
 - **Names are limited to 50 characters.** *Not in the design; added* so a very long name can't break the layout. Easy to change.
 - **Logout always succeeds** and clears the cookie, even if you weren't logged in. *Why:* the user's intent ("I'm out") is satisfied either way.
 - **Commits no longer carry a "Co-Authored-By: Claude" line** (Sunthorn's request). The earlier commit on `main` still has one (see the note in chat).
+
+### Task 3: Households and members (#3)
+- **Someone in another household gets "404 Not found", not "403 Forbidden".** *Why:* a 403 would confirm that user number 7 exists somewhere. A 404 reveals nothing, and it's the same answer as for an ID that doesn't exist.
+- **"Remove" and "Leave" are the same route** (`DELETE /api/household/members/:id`). Removing yourself = leaving. *Why:* the effects are identical (§5), so one piece of code is less to test and explain.
+- **"Make admin" on yourself returns 400 "You're already the admin."** *Not in the design; added* because otherwise the transaction would make you admin and then demote you, leaving the household with no admin.
+- **Leaving resets your role to `member`.** *Why:* if you later join another household, you shouldn't arrive as an admin.
+- **Role changes take effect immediately.** *Why:* `loadUser` reads the user from the database on every request, so the role isn't cached in the cookie. After "Make admin", Alex's very next request is treated as a member's.
+- **A household name is required, max 50 characters**, the same limit as names.
