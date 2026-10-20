@@ -40,3 +40,12 @@ Full details are in the [design](superpowers/specs/2026-10-20-trashtalk-design.m
 - **Broken JSON returns 400 "Invalid JSON"**, not a 500. *Why:* it's the client's mistake, not a server crash.
 - **Paths are resolved relative to the code files** (`import.meta.url`), not the current folder. *Why:* the server and the tests work no matter which folder you start them from.
 - Installed versions: **express 5.3.0**, **better-sqlite3 12.11.1**.
+
+### Task 2: Login and accounts (#2)
+- **Same message for a wrong email and a wrong password** ("Wrong email or password."). *Why:* otherwise the login form tells anyone which emails have an account.
+- **Emails are trimmed and lowercased before saving and before login.** *Problem:* `Alex@Example.com` and `alex@example.com` would otherwise be two different accounts. *Decision:* store lowercase, so duplicates are caught by the `UNIQUE` column and login works in any case.
+- **The synchronous `scryptSync`** instead of the callback version. *Why:* simpler to read and explain. It pauses the server for a few milliseconds per login, which doesn't matter for a household app.
+- **`timingSafeEqual` to compare hashes.** *Why:* a normal `===` stops at the first different character, so response times could leak information.
+- **Names are limited to 50 characters.** *Not in the design; added* so a very long name can't break the layout. Easy to change.
+- **Logout always succeeds** and clears the cookie, even if you weren't logged in. *Why:* the user's intent ("I'm out") is satisfied either way.
+- **Commits no longer carry a "Co-Authored-By: Claude" line** (Sunthorn's request). The earlier commit on `main` still has one (see the note in chat).

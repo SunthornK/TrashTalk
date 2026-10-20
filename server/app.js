@@ -1,6 +1,8 @@
 import express from 'express';
 import { fileURLToPath } from 'node:url';
 import { HttpError } from './errors.js';
+import { loadUser } from './auth.js';
+import { authRoutes } from './routes/auth.js';
 
 const publicDir = fileURLToPath(new URL('../public', import.meta.url));
 
@@ -13,7 +15,8 @@ export function createApp(db) {
   app.use('/api', requireJsonBody);
   app.use(express.static(publicDir));
 
-  // Routers are mounted here by later tasks.
+  app.use(loadUser(db));
+  app.use('/api', authRoutes(db));
 
   app.use('/api', (req, res) => {
     res.status(404).json({ error: 'Not found' });
