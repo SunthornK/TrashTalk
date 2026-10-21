@@ -468,7 +468,42 @@ The card's "current" turn is the **earliest unfinished** assignment of that chor
 
 ---
 
-## 13. Tests
+## 13. Week view, filter, sort and progress (Task 10)
+
+**Two views of the same data.** The **Week | Chores** switch at the top flips between:
+- **Chores** ([cards-view.js](../public/js/chores/cards-view.js)): one card per chore, i.e. **grouped by chore**.
+- **Week** ([week-view.js](../public/js/chores/week-view.js)): the fridge chart, a `<table>` with people down the side and Monday–Sunday across, i.e. **grouped by week**.
+
+Switching doesn't contact the server. It calls the other render function on the data we already have. Your choice is remembered in `localStorage`.
+
+**The fridge chart.**
+- Your row comes first and is highlighted, then the other members.
+- After them come people who have left (e.g. "Kim (left)"), but only in weeks where they had chores.
+- Last is a "Nobody" row if a chore has no one.
+- Today's column is yellow.
+- Each chore is a coloured **chip**. Its colour comes from the status, and the text says it too: ✓ and crossed out for done, plus "late" or "via Jamie".
+- Clicking a chip opens a dialog with the details and the same buttons as a card.
+- **◀ ▶ changes week**, and that fetches the week's data with `GET /api/assignments?from=…&to=…`. **Past weeks are the history.**
+
+**Interactivity the course asks for:**
+- **Filtering** ("Show"): Everyone / Just me / Waiting on someone / Needs a new person (admin only).
+- **Sorting** (Chores view): by due date or chore name.
+- **Grouping**: by week or by chore (the switch).
+
+The rules behind these are pure functions in [filters.js](../public/js/chores/filters.js) (`applyFilter`, `sortCards`, `weekRows`, `weekProgress`) with their own tests.
+
+**This week so far.** A bar per person in the side panel (above the chart on phones): how many of their chores due this week are done, e.g. "1 / 2". It always shows *this* week, even while you look at another one, so the page fetches this week's assignments separately in that case.
+
+**Say this:** "The same assignments can be drawn two ways: grouped by chore as cards, or by week as a table. Switching just re-renders from the data we already have. Filtering and sorting are pure functions with unit tests, and past weeks in the table are the household's history."
+
+**Likely questions**
+- *Where is the grouping?* The Week/Chores switch: by week (table) or by chore (cards).
+- *Does switching view reload data?* No, it redraws from `state`. Only changing the week fetches.
+- *Why a `<table>` for the week?* It *is* a table (people × days). A real `<table>` with header cells lets screen readers announce "Sam, Wednesday" for each cell.
+
+---
+
+## 14. Tests
 
 `npm test` runs the files in `tests/` using Node's built-in test runner. Each test starts the real app on a random port with an empty in-memory database, sends real requests, and checks the answers. For example, "registering `Alex@Example.com` after `alex@example.com` gives 409".
 
