@@ -88,3 +88,13 @@ Full details are in the [design](superpowers/specs/2026-10-20-trashtalk-design.m
 - **The form has `novalidate`**, so the browser's own pop-up bubbles don't appear and every error message comes from our server in our style. The server checks everything anyway.
 - **Buttons are disabled while their request runs** (`withBusy`). *Why:* a double-click can't create two accounts or send two requests.
 - **A trash-can emoji as the tab icon**, written directly in the HTML (no image file), which also stops a "favicon not found" error in the console.
+
+### Task 8: Chores page, cards view (#8)
+- **"State → render" instead of editing cards one by one.** *Why:* after every action we reload the data from the server and redraw from it, so the page can never drift away from what's in the database. Simple to reason about and to explain.
+- **The decision logic is in separate files with no page code** (`status.js`, `filters.js`). *Why:* they can be tested automatically like the server, and the page files only draw.
+- **After "Done ✓", the card moves on to the next turn** (e.g. Trash now shows "Sam · due Tue 27 Oct"). *Why:* a chore card is about what's happening *now* and next; the finished one is still visible in the history (week view, Task 10).
+- **The "Show" filter looks at each card's current assignment**; "Everyone" also shows chores nobody is assigned to yet. *Not spelled out in the design*: a card matches "Just me" if *its current turn* is mine.
+- **Two new small files** (not in the plan): `bits.js` (avatar circle, status tag, "You"/"Kim (left)" label, shared by cards, week view and side panel) and `no-household.js` (the "not in a household yet" screen), to keep `main.js` short.
+- **The three requests that load the page run at the same time** (`Promise.all`), so the page appears faster than asking one after another.
+- **Pico's grey "secondary" buttons were restyled** to our white-with-ink look (same selector problem as Task 7).
+- **Verified in a browser:** cards and tags for Alex match the demo data; Done ✓ shows a notice and the card updates without reloading; Kim sees "You're not in a household yet", and when Alex added her, her page switched to the chores by itself within 10 seconds.

@@ -36,6 +36,13 @@
   --pico-primary-hover-border: var(--ink);
   --pico-primary-inverse: var(--ink);
   --pico-form-element-background-color: var(--paper);
+  --pico-secondary: var(--ink);
+  --pico-secondary-background: var(--paper);
+  --pico-secondary-border: var(--ink);
+  --pico-secondary-inverse: var(--ink);
+  --pico-secondary-hover-background: #f4f4f4;
+  --pico-secondary-hover-border: var(--ink);
+  --pico-secondary-hover: var(--ink);
   --pico-form-element-border-color: var(--ink);
   --pico-form-element-focus-color: var(--ink);
   --pico-border-radius: 6px;
@@ -114,3 +121,36 @@ dialog article footer button { margin: 0; width: auto; }
 .auth article { border: 2.5px solid var(--ink); box-shadow: 5px 5px 0 var(--ink); border-radius: var(--wobble); padding: 1.5rem 1.6rem; }
 .auth h1 { text-align: center; margin-bottom: 1rem; }
 .auth .switch { text-align: center; margin: 0.5rem 0 0; }
+
+/* --- Chores page layout ------------------------------------------------ */
+.page { max-width: 80rem; margin: 0 auto; padding: 1rem; }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
+.empty { padding: 2rem 1rem; text-align: center; color: var(--muted); }
+
+.avatar {
+  display: inline-grid; place-items: center; flex: none;
+  width: 1.6rem; height: 1.6rem; border: 2px solid var(--ink); border-radius: 50%;
+  font-size: 0.75rem; font-weight: 700; background: var(--paper); color: var(--ink);
+}
+
+/* --- Chore cards ------------------------------------------------------- */
+.cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 1.1rem; }
+.chore-card {
+  margin: 0; padding: 0.9rem 1rem; background: var(--paper);
+  border: 2.5px solid var(--ink); box-shadow: var(--shadow);
+  display: flex; flex-direction: column; gap: 0.35rem;
+}
+.chore-card--mine { background: var(--mine); }
+.chore-card--needs { border-color: var(--red); box-shadow: 3px 3px 0 var(--red); }
+.chore-card header { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.5rem; margin: 0; padding: 0; background: none; border: none; }
+.chore-card h3 { font-size: 1.15rem; margin: 0; line-height: 1.3; }
+.chore-card p { margin: 0; }
+.chore-card .now { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+.chore-card .next { font-size: 0.85rem; }
+.chore-card .actions { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: auto; padding-top: 0.4rem; }
+.chore-card .actions button { margin: 0; width: auto; }
+
+/* --- Not in a household ------------------------------------------------ */
+.no-household { max-width: 30rem; margin: 2rem auto; padding: 1.5rem; border: 2.5px solid var(--ink); box-shadow: 5px 5px 0 var(--ink); text-align: center; }
+.no-household form { text-align: left; margin-top: 1rem; }
+.no-household .or { margin: 0.5rem 0; }
