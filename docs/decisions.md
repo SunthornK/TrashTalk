@@ -119,3 +119,12 @@ Full details are in the [design](superpowers/specs/2026-10-20-trashtalk-design.m
 - **The "View" switch remembers your choice** (`localStorage`), wrapped in try/catch so the page still works if the browser blocks storage. The filter and sort reset on reload on purpose.
 - **The "Needs a new person" filter is only offered to the admin.**
 - **Verified in a browser:** this week and last week (history with "late", "via Jamie", "Kim (left)"), Done ✓ from a chip updated the chip and the progress bar together, filter, sort, remembered view, and phone layout.
+
+### Task 11: Admin actions on the Chores page (#11)
+- **"+ Assign next" pre-fills the next person and date** (`suggestNext`, tested): the person after the last one who had the chore, in member order, wrapping round; due on the last due date + the chore's frequency. If the last one was "Nobody" or someone who left, it starts again with the first member. The admin can change both before saving.
+- **Admin buttons are purple and only drawn for the admin**, but this is only convenience. The server's `requireAdmin` is the real protection (members get 403, tested in Task 4).
+- **Overdue and "Nobody" chores get a red outline and "Reassign…"** for the admin, on the cards, in the week view's details dialog, and in the "Needs a new person" panel.
+- **The "+ New chore" card only shows with the "Everyone" filter.** *Why:* under "Just me" it would look like a chore of yours.
+- **A bug caught before it showed:** `replaceChildren(a, b, false)` would print the word "false" on the page for members (where the admin section is `false`). Fixed by filtering out empty sections.
+- **Style fixes:** the tag inside a doodle heading picked up the doodle font; admin dialog buttons were yellow because "submit buttons are yellow" won. Both fixed.
+- **Verified in a browser:** Assign next on Groceries suggested Alex (after Robin) on 1 Nov and created it; Reassign moved Mop kitchen from Nobody to Sam; New chore with an empty name showed the error in the dialog, then created "Water the plants"; Sam (member) saw none of the admin controls.

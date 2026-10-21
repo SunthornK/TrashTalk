@@ -2,7 +2,7 @@
 // replaces it on narrow screens.
 import { el } from '../ui.js';
 import { formatShort, today, startOfWeek } from '../dates.js';
-import { weekProgress } from './filters.js';
+import { weekProgress, applyFilter } from './filters.js';
 import { avatar } from './bits.js';
 
 function incomingRequest(swap, actions) {
@@ -53,7 +53,21 @@ export function renderSidePanel(container, state, actions) {
     incoming.map((swap) => incomingRequest(swap, actions)),
     sent.map((swap) => sentRequest(swap, actions)),
   );
-  container.replaceChildren(requests, progressSection(state));
+  const sections = [requests, progressSection(state), state.me.role === 'admin' && needsSection(state, actions)];
+  container.replaceChildren(...sections.filter(Boolean));
+}
+
+// Admin only: overdue chores and chores with nobody, each with "Reassign…".
+function needsSection(state, actions) {
+  const needs = applyFilter(state.assignments, 'needs', state.me.id);
+  return el('section', { class: 'panel-section', 'aria-labelledby': 'needs-title' },
+    el('h2', { id: 'needs-title' }, 'Needs a new person ', el('span', { class: 'tag tag--over' }, String(needs.length))),
+    needs.length === 0 && el('p', { class: 'muted' }, 'Everything has someone. 👍'),
+    needs.map((a) => el('div', { class: 'request' },
+      el('p', {}, el('strong', {}, a.choreTitle), ` · ${a.userId === null ? 'nobody' : `${a.userName}, overdue`} · ${formatShort(a.dueDate)}`),
+      el('button', { class: 'admin small', onclick: (e) => actions.reassign(a, e.currentTarget) }, 'Reassign…'),
+    )),
+  );
 }
 
 // Narrow screens: only the requests that need your answer, above the chores.

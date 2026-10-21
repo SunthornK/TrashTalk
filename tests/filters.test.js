@@ -137,3 +137,37 @@ test('weekProgress counts done / total for that week only', async () => {
     { userId: 3, name: 'Jamie', done: 0, total: 0 },
   ]);
 });
+
+test('suggestNext: next person in member order, last due date + frequency', async () => {
+  const { suggestNext } = await import('../public/js/chores/filters.js');
+  const chore = { id: 1, title: 'Trash', frequency: 'weekly', active: true };
+  const list = [
+    a({ id: 1, choreId: 1, userId: 3, dueDate: '2026-10-13', status: 'completed' }),
+    a({ id: 2, choreId: 1, userId: 1, dueDate: '2026-10-20' }),
+    a({ id: 3, choreId: 2, userId: 2, dueDate: '2026-11-30' }), // another chore: ignored
+  ];
+  assert.deepEqual(suggestNext(chore, list, members), { userId: 2, dueDate: '2026-10-27' });
+});
+
+test('suggestNext: wraps around after the last member', async () => {
+  const { suggestNext } = await import('../public/js/chores/filters.js');
+  const chore = { id: 1, title: 'Trash', frequency: 'daily', active: true };
+  const list = [a({ id: 1, choreId: 1, userId: 3, dueDate: '2026-10-20' })];
+  assert.deepEqual(suggestNext(chore, list, members), { userId: 1, dueDate: '2026-10-21' });
+});
+
+test('suggestNext: no assignments yet → first member, today', async () => {
+  const { suggestNext } = await import('../public/js/chores/filters.js');
+  const { today } = await import('../public/js/dates.js');
+  const chore = { id: 1, title: 'Trash', frequency: 'weekly', active: true };
+  assert.deepEqual(suggestNext(chore, [], members), { userId: 1, dueDate: today() });
+});
+
+test('suggestNext: last one was Nobody or someone who left → first member', async () => {
+  const { suggestNext } = await import('../public/js/chores/filters.js');
+  const chore = { id: 1, title: 'Trash', frequency: 'weekly', active: true };
+  const list = [a({ id: 1, choreId: 1, userId: null, dueDate: '2026-10-20' })];
+  assert.equal(suggestNext(chore, list, members).userId, 1);
+  const left = [a({ id: 1, choreId: 1, userId: 9, userLeft: true, dueDate: '2026-10-20' })];
+  assert.equal(suggestNext(chore, left, members).userId, 1);
+});

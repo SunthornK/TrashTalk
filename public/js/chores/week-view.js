@@ -4,7 +4,7 @@ import { el } from '../ui.js';
 import { addDays, formatShort, today, weekLabel, localDate } from '../dates.js';
 import { applyFilter, weekRows } from './filters.js';
 import { displayStatus } from './status.js';
-import { avatar, statusTag, whoLabel, assignmentButtons } from './bits.js';
+import { avatar, statusTag, whoLabel, assignmentButtons, adminButtons } from './bits.js';
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -91,6 +91,7 @@ function openDetails(assignment, state, actions) {
     notes.map((note) => el('p', { class: 'muted' }, note)),
     el('footer', {},
       assignmentButtons(assignment, state.me, closingActions),
+      adminButtons(assignment, null, state.me, closingActions),
       el('button', { type: 'button', class: 'secondary', onclick: () => dialog.close() }, 'Close'),
     ),
   ));

@@ -2,6 +2,23 @@
 import { el } from '../ui.js';
 import { displayStatus } from './status.js';
 
+export const FREQUENCY_LABELS = { daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly', once: 'Once' };
+
+// Is this an unfinished chore that's overdue or has nobody? (admin: "needs a new person")
+export function needsNewPerson(assignment) {
+  return assignment.status === 'assigned' && (assignment.overdue || assignment.userId === null);
+}
+
+// The admin's purple buttons for one assignment.
+export function adminButtons(assignment, chore, me, actions) {
+  if (me.role !== 'admin') return [];
+  return [
+    assignment && needsNewPerson(assignment) &&
+      el('button', { class: 'admin small', onclick: (e) => actions.reassign(assignment, e.currentTarget) }, 'Reassign…'),
+    chore && el('button', { class: 'admin small', onclick: (e) => actions.assignNext(chore, e.currentTarget) }, '+ Assign next'),
+  ];
+}
+
 // A circle with someone's first letter.
 export function avatar(name) {
   return el('span', { class: 'avatar', 'aria-hidden': 'true' }, name ? name[0].toUpperCase() : '?');

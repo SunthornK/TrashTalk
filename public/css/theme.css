@@ -77,7 +77,7 @@ button, [role='button'], [type='submit'], [type='button'] {
 button:hover, [role='button']:hover { --pico-background-color: #f4f4f4; --pico-color: var(--ink); --pico-border-color: var(--ink); }
 button.primary, button[type='submit'] { --pico-background-color: var(--yellow); }
 button.primary:hover, button[type='submit']:hover { --pico-background-color: #ffcf1f; }
-button.admin { --pico-background-color: var(--purple); }
+button.admin, button.admin[type='submit'] { --pico-background-color: var(--purple); }
 button.danger { --pico-color: var(--red); --pico-border-color: var(--red); box-shadow: 2px 2px 0 var(--red); }
 button.secondary { --pico-background-color: var(--paper); }
 button.link {
@@ -91,7 +91,7 @@ button.small { padding: 0.2rem 0.65rem; font-size: 0.85rem; }
 .tag {
   display: inline-block; font-size: 0.75rem; font-weight: 600; line-height: 1.5;
   padding: 0 0.45rem; border: 2px solid var(--ink); border-radius: var(--wobble);
-  color: var(--ink); background: var(--paper); white-space: nowrap;
+  color: var(--ink); background: var(--paper); white-space: nowrap; font-family: var(--pico-font-family); vertical-align: middle;
 }
 .tag--over { background: var(--orange); }
 .tag--pend { background: var(--blue); }
@@ -244,3 +244,11 @@ table.week tr.me th, table.week tr.me td { background: var(--mine); }
 .small-print { font-size: 0.78rem; margin: 0.4rem 0 0; }
 #progress-narrow .panel-section { border: 2px dashed #bbb; border-radius: 6px; padding: 0.6rem 0.8rem; margin-bottom: 1rem; }
 @media (min-width: 900px) { .page #progress-narrow { display: none; } }
+
+/* --- Admin ------------------------------------------------------------- */
+.add-card {
+  margin: 0; min-height: 8rem; width: 100%; font-weight: 700; font-size: 1.05rem;
+  border: 2.5px dashed var(--ink); box-shadow: none;
+  --pico-background-color: var(--paper); --pico-color: var(--muted);
+}
+.add-card:hover { --pico-background-color: var(--purple); --pico-color: var(--ink); }

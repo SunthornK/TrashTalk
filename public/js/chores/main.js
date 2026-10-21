@@ -3,11 +3,12 @@ import { api } from '../api.js';
 import { el, toast, handleError, withBusy } from '../ui.js';
 import { addDays, startOfWeek, today, weekLabel } from '../dates.js';
 import { state, fetchAll, applyData, setView } from './state.js';
-import { shouldRender } from './filters.js';
+import { shouldRender, suggestNext } from './filters.js';
 import { renderCards } from './cards-view.js';
 import { renderWeek } from './week-view.js';
 import { renderSidePanel, renderBanner, progressSection } from './side-panel.js';
 import { openSwapDialog } from './swap-dialog.js';
+import { openAssignDialog, openReassignDialog, openNewChoreDialog } from './admin-dialogs.js';
 import { renderNoHousehold } from './no-household.js';
 
 const content = document.getElementById('content');
@@ -53,6 +54,39 @@ const actions = {
 
   reject: (swap, button) =>
     run(button, () => api('POST', `/swaps/${swap.id}/reject`), `You said no to ${swap.requesterName}.`),
+
+  // Admin only (the server checks this too).
+  assignNext: async (chore) => {
+    const members = state.household.members;
+    let name = '';
+    const ok = await openAssignDialog(chore, members, suggestNext(chore, state.assignments, members), async (values) => {
+      await api('POST', '/assignments', { choreId: chore.id, ...values });
+      name = members.find((m) => m.id === values.userId)?.name;
+    });
+    if (ok) toast(`"${chore.title}" assigned to ${name}.`);
+    await refresh();
+  },
+
+  reassign: async (assignment) => {
+    const members = state.household.members;
+    let name = '';
+    const ok = await openReassignDialog(assignment, members, async (values) => {
+      await api('PATCH', `/assignments/${assignment.id}`, values);
+      name = members.find((m) => m.id === values.userId)?.name;
+    });
+    if (ok) toast(`"${assignment.choreTitle}" now belongs to ${name}.`);
+    await refresh();
+  },
+
+  newChore: async () => {
+    let title = '';
+    const ok = await openNewChoreDialog(async (values) => {
+      const chore = await api('POST', '/chores', values);
+      title = chore.title;
+    });
+    if (ok) toast(`Added "${title}". Use "+ Assign next" to give it to someone.`);
+    await refresh();
+  },
 };
 
 // --- Drawing ---------------------------------------------------------

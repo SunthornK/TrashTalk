@@ -1,6 +1,6 @@
 // Pure functions that decide *what* to show. No page code here, so they
 // can be tested with node:test like the server.
-import { addDays } from '../dates.js';
+import { addDays, addFrequency, today } from '../dates.js';
 
 const byDueDate = (a, b) => a.dueDate.localeCompare(b.dueDate) || a.id - b.id;
 
@@ -103,4 +103,18 @@ export function weekProgress(assignments, members, monday) {
       total: theirs.length,
     };
   });
+}
+
+// --- Admin: "+ Assign next" ------------------------------------------------
+
+// What to pre-fill: the person after the last one who had this chore (in
+// member order, wrapping round), due on the last due date + the chore's
+// frequency. With no history: the first member, due today.
+export function suggestNext(chore, assignments, members) {
+  const history = assignments.filter((a) => a.choreId === chore.id).sort(byDueDate);
+  const last = history.at(-1);
+  if (!last) return { userId: members[0]?.id ?? null, dueDate: today() };
+  const lastIndex = members.findIndex((m) => m.id === last.userId);
+  const next = lastIndex === -1 ? members[0] : members[(lastIndex + 1) % members.length];
+  return { userId: next?.id ?? null, dueDate: addFrequency(last.dueDate, chore.frequency) };
 }

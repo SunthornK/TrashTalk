@@ -2,15 +2,20 @@
 import { el } from '../ui.js';
 import { formatShort } from '../dates.js';
 import { buildChoreCards, filterCards, sortCards } from './filters.js';
-import { avatar, statusTag, whoLabel, assignmentButtons } from './bits.js';
+import { avatar, statusTag, whoLabel, assignmentButtons, adminButtons, needsNewPerson } from './bits.js';
 
 export function renderCards(container, state, actions) {
   const { me, household, assignments } = state;
   const allCards = buildChoreCards(household.chores, assignments);
 
+  const newChore = me.role === 'admin' &&
+    el('button', { type: 'button', class: 'add-card wobble', onclick: (e) => actions.newChore(e.currentTarget) }, '+ New chore');
+
   if (allCards.length === 0) {
-    container.replaceChildren(el('p', { class: 'empty' },
-      me.role === 'admin' ? 'No chores yet. Add your first one with "+ New chore".' : 'No chores yet. Ask your admin to add some.'));
+    container.replaceChildren(
+      el('p', { class: 'empty' }, me.role === 'admin' ? 'No chores yet. Add your first one with "+ New chore".' : 'No chores yet. Ask your admin to add some.'),
+      newChore && el('div', { class: 'cards-grid' }, newChore),
+    );
     return;
   }
 
@@ -20,19 +25,26 @@ export function renderCards(container, state, actions) {
     return;
   }
 
-  container.replaceChildren(el('div', { class: 'cards-grid' }, cards.map((card) => choreCard(card, me, actions))));
+  container.replaceChildren(el('div', { class: 'cards-grid' },
+    cards.map((card) => choreCard(card, me, actions)),
+    state.filter === 'everyone' && newChore,
+  ));
 }
 
 function choreCard({ chore, current, upcoming }, me, actions) {
   const mine = current?.userId === me.id;
-  return el('article', { class: `chore-card wobble${mine ? ' chore-card--mine' : ''}` },
+  const needs = me.role === 'admin' && current && needsNewPerson(current);
+  return el('article', { class: `chore-card wobble${mine ? ' chore-card--mine' : ''}${needs ? ' chore-card--needs' : ''}` },
     el('header', {},
       el('h3', {}, chore.title),
       current && statusTag(current, me.id),
     ),
     current ? whenLine(current, me) : el('p', { class: 'muted' }, 'Nobody is assigned yet.'),
     upcoming.length > 0 && el('p', { class: 'next muted' }, `then ${upcoming.map((a) => whoLabel(a, me.id)).join(', ')}`),
-    el('div', { class: 'actions' }, assignmentButtons(current, me, actions)),
+    el('div', { class: 'actions' },
+      assignmentButtons(current, me, actions),
+      adminButtons(current, chore, me, actions),
+    ),
   );
 }
 
