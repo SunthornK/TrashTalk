@@ -528,7 +528,38 @@ The admin uses the **same Chores page** as everyone, plus a few **purple** butto
 
 ---
 
-## 15. Tests
+## 15. The Household page (Task 12)
+
+[public/household.html](../public/household.html) + [public/js/household.js](../public/js/household.js). Two **tabs**:
+
+**People**
+- Everyone sees the member list (name, email, Admin tag) and a **Leave household** button.
+- The admin also gets **Make admin** and **Remove** on each other person, and an **Add someone by email** form.
+- Each of those asks "Are you sure?" first, with a sentence saying what will happen.
+- If the admin clicks Leave, the server answers "Make someone else admin first." (409), and the page shows that message.
+
+**Chore list**
+- Every chore, including archived ones (greyed out, at the bottom).
+- The admin can **Edit** in place (the row turns into a small form), **Archive** (asks first: unfinished assignments are deleted, history stays) and **Restore**.
+- Members see the list read-only.
+
+**Accessible tabs.**
+- The buttons have `role="tab"` and `aria-selected`, and each controls a panel with `role="tabpanel"`.
+- Clicking a tab (or pressing ← →) shows its panel (`hidden = false`) and hides the other.
+- A screen reader announces "People, tab, 1 of 2, selected".
+
+**Same patterns as the Chores page:** `api()` for every request, `el()` to build the lists, `confirmDialog()` for "are you sure?", errors under the right input, and the page reloads its data and redraws after every change.
+
+**Say this:** "The Household page is for setup: members and the chore list. Destructive actions ask for confirmation, errors appear next to the input, and the rules (like 'the admin can't leave') are enforced by the server, which also gives the message the user sees."
+
+**Likely questions**
+- *What's your Delete?* Archiving a chore (and Restore undoes it), removing a member, cancelling a swap request.
+- *Why can't the admin leave?* Every household needs exactly one admin. Hand the role over first with "Make admin".
+- *How do the tabs work?* Two buttons that show one panel and hide the other, with ARIA roles so assistive technology understands them.
+
+---
+
+## 16. Tests
 
 `npm test` runs the files in `tests/` using Node's built-in test runner. Each test starts the real app on a random port with an empty in-memory database, sends real requests, and checks the answers. For example, "registering `Alex@Example.com` after `alex@example.com` gives 409".
 
