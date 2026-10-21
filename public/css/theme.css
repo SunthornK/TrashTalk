@@ -299,12 +299,16 @@ label.pick:has(input:focus-visible) { outline: 3px solid #1a5fb4; outline-offset
 .page { max-width: none; padding: 1rem; }
 .household { max-width: 60rem; margin: 0 auto; }
 @media (min-width: 900px) {
-  /* The side panel stays in view and scrolls on its own, so the page
-     itself fits in one window even when the panel is long. */
+  /* Chores page on wide screens: an app-style layout that always fills the
+     window. The page itself doesn't scroll; the chores column and the side
+     panel each scroll on their own, and the panel's divider line runs all
+     the way down. */
   .layout { grid-template-columns: minmax(0, 1fr) clamp(18rem, 24vw, 24rem); }
-  #side {
-    position: sticky; top: 1rem;
-    max-height: calc(100vh - 6rem); overflow-y: auto;
-    padding-right: 0.4rem;
-  }
+  body.app { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+  .app .page { flex: 1; min-height: 0; width: 100%; margin: 0; display: flex; flex-direction: column; padding-bottom: 0; }
+  .app .layout { flex: 1; min-height: 0; align-items: stretch; }
+  /* A little padding inside the scrolling areas so hard shadows and focus
+     outlines at the edges aren't cut off. */
+  .app .main-col { min-height: 0; overflow-y: auto; padding: 0.3rem 0.5rem 1.5rem 0.3rem; }
+  .app #side { min-height: 0; overflow-y: auto; padding-top: 0.3rem; padding-right: 0.4rem; padding-bottom: 1.5rem; align-content: start; }
 }
