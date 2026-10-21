@@ -72,3 +72,9 @@ Full details are in the [design](superpowers/specs/2026-10-20-trashtalk-design.m
 - **Accept also checks the chore is still the requester's and unfinished**, inside the same transaction. If not, both changes are rolled back, so the request stays exactly as it was instead of being half-accepted.
 - **A household member who isn't part of a swap gets 404** (same as another household). *Why:* only the requester and the person asked have any business with it.
 - **An empty message is stored as nothing (`NULL`)**, so the browser can simply check "is there a message?".
+
+### Task 6: Demo data (#6)
+- **All demo dates are calculated from today** (e.g. "Alex's Trash was due yesterday"). *Why:* fixed dates would go stale. On presentation day there would be nothing "this week" and everything would be overdue.
+- **Seeding wipes everything first**, inside one transaction. *Why:* you can re-run `npm run seed` right before the demo to get a clean, predictable state, and running it twice doesn't create duplicates.
+- **What the demo contains**, so every screen has something to show: Alex's overdue Trash; Jamie asking Alex to take Vacuum (with a message); Alex waiting on Sam for Bathroom; a "Nobody" chore (Mop kitchen, since Kim moved out); finished, late and handed-over chores in the past two weeks; Kim's old chores; an archived chore (Water plants) to restore; and two chores next week.
+- **Demo logins:** `alex@example.com` (admin), `sam@`, `jamie@`, `robin@`, `kim@` (no household), all with password `password123`. Fine for synthetic demo data only.
