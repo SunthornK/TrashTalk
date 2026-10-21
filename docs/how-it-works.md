@@ -269,7 +269,49 @@ Because they're calculated on every read, they can never be out of date. No time
 
 ---
 
-## 8. Tests
+## 8. Swap requests: the main feature (Task 5)
+
+**What it is.** A one-way **handoff**: "Sam, can you take my Trash?" Sam can say yes or no, and I can take the request back. Nothing is given in return. [server/routes/swaps.js](../server/routes/swaps.js)
+
+| Request | Who | What happens |
+|---|---|---|
+| `GET /api/swaps` | member | `{ incoming, sent }`: pending requests to me / from me |
+| `POST /api/swaps` | the chore's owner | ask someone (optional message, max 200 chars) |
+| `POST /api/swaps/:id/accept` | the person asked | the chore becomes theirs |
+| `POST /api/swaps/:id/reject` | the person asked | it stays with the asker |
+| `POST /api/swaps/:id/cancel` | the asker | takes the request back |
+
+**The rules**
+1. You can only ask about **your own, unfinished** chore (overdue is fine).
+2. You can ask **anyone else in your household**, not yourself and not outsiders.
+3. **Only one pending request per chore at a time.** The database's unique index enforces it. To ask someone else, cancel first.
+4. **Until it's accepted, the chore is still yours**, including being overdue.
+
+**Status of a request:** `pending` → `accepted` / `rejected` / `cancelled`. Old requests are kept, so one chore can have many requests over time, but only ever one *pending*.
+
+**The race problem.** Sam clicks *Accept* at the same moment Alex clicks *Cancel*. If the server did "check it's pending → then update", both could pass the check before either updates. We do **one conditional update** instead:
+
+```sql
+UPDATE swap_requests SET status = 'accepted' WHERE id = ? AND status = 'pending'
+```
+
+The database answers with how many rows it changed:
+- **1** → we were first, so it's ours.
+- **0** → someone else changed it first, so we answer **409 "This request is no longer available."**
+
+Accepting needs two changes: the request becomes `accepted`, **and** the chore moves to Sam. Both run inside a **transaction**. The second UPDATE also only matches if the chore is *still* the asker's and *still* unfinished. If it isn't (say the admin reassigned it a second ago), we throw, the transaction **rolls back** the first change too, and nothing is half-done.
+
+**Say this:** "Accepting is one transaction with two conditional updates. Each only matches if the data is still as expected, so if two people act at the same moment, exactly one wins and the other gets a clear 409 message."
+
+**Likely questions**
+- *What if Sam and Alex click at the same time?* Whichever request reaches the database first changes the row. The other changes 0 rows and gets "This request is no longer available."
+- *How do you stop two pending requests for one chore?* A partial unique index in the database. Even buggy code can't insert a second pending request.
+- *Why is it one-way and not a trade?* A trade needs both people to have an unfinished chore. Someone who has finished everything, the best person to help, couldn't help.
+- *What happens to the request if the chore is done or reassigned?* It's cancelled automatically.
+
+---
+
+## 9. Tests
 
 `npm test` runs the files in `tests/` using Node's built-in test runner. Each test starts the real app on a random port with an empty in-memory database, sends real requests, and checks the answers. For example, "registering `Alex@Example.com` after `alex@example.com` gives 409".
 

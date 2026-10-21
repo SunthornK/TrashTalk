@@ -65,3 +65,10 @@ Full details are in the [design](superpowers/specs/2026-10-20-trashtalk-design.m
 - **Adding a month clamps to the month's last day** (31 Jan + 1 month = 28 Feb, not 3 Mar).
 - **New file `server/validate.js`** (not in the plan): the shared checks (text, frequency, date, "is this person in your household?") live in one place, so every route gives the same error messages.
 - **Assigning to an archived chore → 409 "This chore is archived."**, and **marking a chore done twice → 409**.
+
+### Task 5: Swap requests (#5)
+- **The "one pending request" rule is enforced by the database, and we turn its refusal into a friendly message.** *Problem:* checking "is there already a pending request?" in JavaScript before inserting leaves a tiny gap where two requests could both pass the check. *Decision:* just try the INSERT. If the unique index refuses it, answer 409 "This chore already has a pending request." The check for that error lives in `db.js` (`isUniqueViolation`), because each database driver reports it differently.
+- **Accept, reject and cancel all use `UPDATE ... WHERE status = 'pending'`** and look at how many rows changed. *Why:* checking first and updating after leaves a gap where another click can sneak in. A single conditional UPDATE can't be interrupted. 0 rows changed → 409 "This request is no longer available."
+- **Accept also checks the chore is still the requester's and unfinished**, inside the same transaction. If not, both changes are rolled back, so the request stays exactly as it was instead of being half-accepted.
+- **A household member who isn't part of a swap gets 404** (same as another household). *Why:* only the requester and the person asked have any business with it.
+- **An empty message is stored as nothing (`NULL`)**, so the browser can simply check "is there a message?".

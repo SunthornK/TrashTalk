@@ -71,6 +71,32 @@ export function assignmentView(db, id) {
   return toView(db.prepare(`${ASSIGNMENT_SELECT} WHERE a.id = ?`).get(id));
 }
 
+// The pending requests a user is involved in: ones asking them (incoming)
+// and ones they sent (sent).
+export function swapsQuery(db, userId) {
+  const incoming = db.prepare(`
+    SELECT s.id, s.assignment_id AS assignmentId, c.title AS choreTitle, a.due_date AS dueDate,
+           r.name AS requesterName, s.message, s.created_at AS createdAt
+    FROM swap_requests s
+    JOIN assignments a ON a.id = s.assignment_id
+    JOIN chores c ON c.id = a.chore_id
+    JOIN users r ON r.id = s.requester_id
+    WHERE s.target_user_id = ? AND s.status = 'pending'
+    ORDER BY s.created_at
+  `).all(userId);
+  const sent = db.prepare(`
+    SELECT s.id, s.assignment_id AS assignmentId, c.title AS choreTitle, a.due_date AS dueDate,
+           t.name AS targetName, s.created_at AS createdAt
+    FROM swap_requests s
+    JOIN assignments a ON a.id = s.assignment_id
+    JOIN chores c ON c.id = a.chore_id
+    JOIN users t ON t.id = s.target_user_id
+    WHERE s.requester_id = ? AND s.status = 'pending'
+    ORDER BY s.created_at
+  `).all(userId);
+  return { incoming, sent };
+}
+
 // The raw assignment row, but only if it belongs to this household.
 export function findAssignmentInHousehold(db, id, householdId) {
   const row = db.prepare(`

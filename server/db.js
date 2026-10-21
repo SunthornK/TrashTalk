@@ -12,6 +12,12 @@ export function openDb(path) {
   return db;
 }
 
+// True when an INSERT/UPDATE broke a UNIQUE rule (e.g. one_pending_swap).
+// Lives here because each driver reports this differently.
+export function isUniqueViolation(err) {
+  return err?.code === 'SQLITE_CONSTRAINT_UNIQUE';
+}
+
 // Run fn inside a transaction: either everything it writes is saved, or
 // (if it throws) nothing is.
 export function transaction(db, fn) {
