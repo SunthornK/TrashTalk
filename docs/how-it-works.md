@@ -230,7 +230,46 @@ Your *completed* chores keep your name, so the history stays true.
 
 ---
 
-## 7. Tests
+## 7. Chores, assignments and "overdue" (Task 4)
+
+**Chore vs assignment.** A **chore** is the kind of task ("Take out trash", weekly). An **assignment** is one instance of it: *who* does it and *when* ("Trash, Sam, due Tue 27 Oct"). One chore has many assignments over time. The admin creates assignments by hand.
+
+| Request | Who | What happens |
+|---|---|---|
+| `POST /api/chores` | admin | new chore (title + daily/weekly/monthly/once) |
+| `PATCH /api/chores/:id` | admin | rename, change frequency, **archive** (`active: false`) or **restore** |
+| `GET /api/assignments` | member | the household's assignments (see below) |
+| `POST /api/assignments` | admin | assign a chore to someone with a due date |
+| `PATCH /api/assignments/:id` | admin | **reassign** to someone else |
+| `POST /api/assignments/:id/complete` | the assignee only | mark done |
+
+**JOINs.** An assignment row only stores numbers (`chore_id = 3`, `user_id = 2`). To answer with names, the query in [server/views.js](../server/views.js) **joins** tables: for each assignment, also fetch the chore with that id, the user with that id, any pending swap, and the name of the person who was asked. A `LEFT JOIN` means "if there's a match, include it, otherwise fill in null". We use it for the user (the chore might be "Nobody") and for swaps (most chores have none).
+
+**Computed fields.** Some fields aren't stored. They're worked out every time the assignments are read (`toView` in [views.js](../server/views.js)):
+- `overdue`: not done **and** due date is before today. A chore due *today* is not overdue yet.
+- `wasLate`: done, but on a later day than it was due (used for history).
+- `pendingSwap`: who has been asked to take it, if anyone.
+- `viaName`: if it came to you through an accepted swap, who handed it over.
+- `userLeft`: the person has since left the household.
+
+Because they're calculated on every read, they can never be out of date. No timer has to wake up at midnight to mark things overdue.
+
+**Two ways to ask.** `GET /api/assignments?from=2026-10-19&to=2026-10-25` returns everything due that week, used by the week view (also for past weeks = history). Without dates, it returns every unfinished assignment plus the most recent finished one for each chore, used by the chore cards.
+
+**Shared date helpers.** [public/js/dates.js](../public/js/dates.js) is used by **both** the server and the browser, so they agree on "today" and "this week" (Monday–Sunday). Dates are plain text like `'2026-10-20'`, which conveniently sorts and compares correctly as text.
+
+**Archiving** a chore hides it and deletes its *unfinished* assignments (and their swap requests). Finished ones stay as history. It can be restored later. This is our "delete" operation for chores.
+
+**Say this:** "A chore is the task; an assignment is one person doing it by one date. Overdue isn't stored, it's computed when assignments are read, so it's always correct. The query joins assignments with chores, users and swap requests to send everything the page needs in one response."
+
+**Likely questions**
+- *Why isn't 'overdue' a column?* It would need a background job to update it at midnight, and it could get out of sync. Computing it is always right.
+- *What's a JOIN?* Combining rows from two tables that match on a column, e.g. assignment.user_id = users.id, to get the user's name.
+- *Who can mark a chore done?* Only the person it's assigned to. The server checks and answers 403 otherwise.
+
+---
+
+## 8. Tests
 
 `npm test` runs the files in `tests/` using Node's built-in test runner. Each test starts the real app on a random port with an empty in-memory database, sends real requests, and checks the answers. For example, "registering `Alex@Example.com` after `alex@example.com` gives 409".
 

@@ -4,6 +4,8 @@ import { HttpError } from './errors.js';
 import { loadUser } from './auth.js';
 import { authRoutes } from './routes/auth.js';
 import { householdRoutes } from './routes/households.js';
+import { choreRoutes } from './routes/chores.js';
+import { assignmentRoutes } from './routes/assignments.js';
 
 const publicDir = fileURLToPath(new URL('../public', import.meta.url));
 
@@ -19,6 +21,8 @@ export function createApp(db) {
   app.use(loadUser(db));
   app.use('/api', authRoutes(db));
   app.use('/api', householdRoutes(db));
+  app.use('/api', choreRoutes(db));
+  app.use('/api', assignmentRoutes(db));
 
   app.use('/api', (req, res) => {
     res.status(404).json({ error: 'Not found' });

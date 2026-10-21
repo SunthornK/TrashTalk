@@ -57,3 +57,11 @@ Full details are in the [design](superpowers/specs/2026-10-20-trashtalk-design.m
 - **Leaving resets your role to `member`.** *Why:* if you later join another household, you shouldn't arrive as an admin.
 - **Role changes take effect immediately.** *Why:* `loadUser` reads the user from the database on every request, so the role isn't cached in the cookie. After "Make admin", Alex's very next request is treated as a member's.
 - **A household name is required, max 50 characters**, the same limit as names.
+
+### Task 4: Chores and assignments (#4)
+- **Archiving a chore deletes its unfinished assignments *and their swap requests*.** *Problem:* the design said "cancel their pending swaps", but a swap request row points at its assignment (a foreign key), so the database refuses to delete an assignment that still has requests. *Decision:* delete those requests too. They belonged to chores that no longer exist, and completed history is untouched.
+- **Dates are parsed as local time, never with `new Date('2026-10-20')`.** *Problem:* JavaScript reads `'2026-10-20'` as midnight **UTC**, which is still the 19th in some time zones, so a chore could show on the wrong day. *Decision:* split the string into numbers and build a local date.
+- **"Was late" compares the local date of `completed_at` with the due date.** *Why:* `completed_at` is a full timestamp in UTC, so cutting it to 10 characters could give yesterday's date late in the evening.
+- **Adding a month clamps to the month's last day** (31 Jan + 1 month = 28 Feb, not 3 Mar).
+- **New file `server/validate.js`** (not in the plan): the shared checks (text, frequency, date, "is this person in your household?") live in one place, so every route gives the same error messages.
+- **Assigning to an archived chore → 409 "This chore is archived."**, and **marking a chore done twice → 409**.
