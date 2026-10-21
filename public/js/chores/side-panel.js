@@ -1,7 +1,8 @@
 // The right-hand panel on wide screens (spec §8.4), and the banner that
 // replaces it on narrow screens.
 import { el } from '../ui.js';
-import { formatShort } from '../dates.js';
+import { formatShort, today, startOfWeek } from '../dates.js';
+import { weekProgress } from './filters.js';
 import { avatar } from './bits.js';
 
 function incomingRequest(swap, actions) {
@@ -26,6 +27,24 @@ function sentRequest(swap, actions) {
   );
 }
 
+// "This week so far": done / assigned per person, as text and a bar.
+export function progressSection(state, idSuffix = '') {
+  const rows = weekProgress(state.thisWeekAssignments, state.household.members, startOfWeek(today()));
+  return el('section', { class: 'panel-section progress', 'aria-labelledby': `progress-title${idSuffix}` },
+    el('h2', { id: `progress-title${idSuffix}` }, 'This week so far'),
+    el('ul', { class: 'bars' }, rows.map((row) => {
+      const percent = row.total === 0 ? 0 : Math.round((row.done / row.total) * 100);
+      return el('li', {},
+        avatar(row.name),
+        el('span', { class: 'bar-name' }, row.userId === state.me.id ? 'You' : row.name),
+        el('span', { class: 'bar wobble', 'aria-hidden': 'true' }, el('span', { style: `width: ${percent}%` })),
+        el('span', { class: 'bar-count' }, `${row.done} / ${row.total}`),
+      );
+    })),
+    el('p', { class: 'muted small-print' }, 'Done / assigned, due this week.'),
+  );
+}
+
 export function renderSidePanel(container, state, actions) {
   const { incoming, sent } = state.swaps;
   const requests = el('section', { class: 'panel-section', 'aria-labelledby': 'requests-title' },
@@ -34,7 +53,7 @@ export function renderSidePanel(container, state, actions) {
     incoming.map((swap) => incomingRequest(swap, actions)),
     sent.map((swap) => sentRequest(swap, actions)),
   );
-  container.replaceChildren(requests);
+  container.replaceChildren(requests, progressSection(state));
 }
 
 // Narrow screens: only the requests that need your answer, above the chores.

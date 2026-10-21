@@ -2,7 +2,7 @@
 import { el } from '../ui.js';
 import { formatShort } from '../dates.js';
 import { buildChoreCards, filterCards, sortCards } from './filters.js';
-import { avatar, statusTag, whoLabel } from './bits.js';
+import { avatar, statusTag, whoLabel, assignmentButtons } from './bits.js';
 
 export function renderCards(container, state, actions) {
   const { me, household, assignments } = state;
@@ -32,7 +32,7 @@ function choreCard({ chore, current, upcoming }, me, actions) {
     ),
     current ? whenLine(current, me) : el('p', { class: 'muted' }, 'Nobody is assigned yet.'),
     upcoming.length > 0 && el('p', { class: 'next muted' }, `then ${upcoming.map((a) => whoLabel(a, me.id)).join(', ')}`),
-    el('div', { class: 'actions' }, cardButtons(current, me, actions)),
+    el('div', { class: 'actions' }, assignmentButtons(current, me, actions)),
   );
 }
 
@@ -45,18 +45,4 @@ function whenLine(assignment, me) {
     el('strong', {}, who),
     ` · ${when} ${formatShort(assignment.dueDate)}`,
   );
-}
-
-// Only the buttons you're allowed to use. (The server checks again anyway.)
-function cardButtons(current, me, actions) {
-  if (!current || current.status !== 'assigned' || current.userId !== me.id) return [];
-  if (current.pendingSwap) {
-    return [
-      el('button', { class: 'secondary small', onclick: (e) => actions.cancelSwap(current.pendingSwap, e.currentTarget) }, 'Cancel request'),
-    ];
-  }
-  return [
-    el('button', { class: 'primary small', onclick: (e) => actions.complete(current, e.currentTarget) }, 'Done ✓'),
-    el('button', { class: 'secondary small', onclick: (e) => actions.openSwap(current, e.currentTarget) }, "Can't do it…"),
-  ];
 }

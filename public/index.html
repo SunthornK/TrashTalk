@@ -22,9 +22,39 @@
   <div class="page">
     <div id="banner"></div>
     <div class="layout">
-      <main id="content" aria-live="polite">
-        <p class="muted" aria-busy="true">Loading…</p>
-      </main>
+      <div class="main-col">
+        <div id="controls" class="controls" hidden>
+          <div class="toggle" role="group" aria-label="View">
+            <button type="button" data-view="week">Week</button>
+            <button type="button" data-view="chores">Chores</button>
+          </div>
+          <div class="week-nav" id="week-nav">
+            <button type="button" id="prev-week" class="small" aria-label="Previous week">◀</button>
+            <span id="week-label" aria-live="polite"></span>
+            <button type="button" id="next-week" class="small" aria-label="Next week">▶</button>
+            <button type="button" id="this-week" class="link">This week</button>
+          </div>
+          <span class="spacer"></span>
+          <label class="inline">Show
+            <select id="filter">
+              <option value="everyone">Everyone</option>
+              <option value="mine">Just me</option>
+              <option value="waiting">Waiting on someone</option>
+              <option value="needs">Needs a new person</option>
+            </select>
+          </label>
+          <label class="inline" id="sort-wrap">Sort
+            <select id="sort">
+              <option value="due">Due date</option>
+              <option value="name">Chore name</option>
+            </select>
+          </label>
+        </div>
+        <div id="progress-narrow"></div>
+        <main id="content" aria-live="polite">
+          <p class="muted" aria-busy="true">Loading…</p>
+        </main>
+      </div>
       <aside id="side" aria-label="Requests and this week"></aside>
     </div>
   </div>

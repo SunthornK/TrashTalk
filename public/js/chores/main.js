@@ -1,10 +1,12 @@
 // The Chores page: load the data, draw it, and handle what people click.
 import { api } from '../api.js';
 import { el, toast, handleError, withBusy } from '../ui.js';
-import { state, fetchAll, applyData } from './state.js';
+import { addDays, startOfWeek, today, weekLabel } from '../dates.js';
+import { state, fetchAll, applyData, setView } from './state.js';
 import { shouldRender } from './filters.js';
 import { renderCards } from './cards-view.js';
-import { renderSidePanel, renderBanner } from './side-panel.js';
+import { renderWeek } from './week-view.js';
+import { renderSidePanel, renderBanner, progressSection } from './side-panel.js';
 import { openSwapDialog } from './swap-dialog.js';
 import { renderNoHousehold } from './no-household.js';
 
@@ -12,6 +14,8 @@ const content = document.getElementById('content');
 const side = document.getElementById('side');
 const banner = document.getElementById('banner');
 const nav = document.getElementById('nav');
+const controls = document.getElementById('controls');
+const progressNarrow = document.getElementById('progress-narrow');
 const who = document.getElementById('who');
 
 const POLL_MS = 10000;
@@ -65,15 +69,55 @@ function renderTopbar() {
 
 function render() {
   renderTopbar();
+  syncControls();
   if (!state.me.householdId) {
     side.replaceChildren();
     banner.replaceChildren();
+    progressNarrow.replaceChildren();
     renderNoHousehold(content, state.me, refresh);
     return;
   }
   renderBanner(banner, state, actions);
   renderSidePanel(side, state, actions);
-  renderCards(content, state, actions);
+  progressNarrow.replaceChildren(progressSection(state, '-narrow'));
+  if (state.view === 'week') renderWeek(content, state, actions);
+  else renderCards(content, state, actions);
+}
+
+// --- Controls: the Week | Chores switch, filter, sort, week arrows.
+// They live in the HTML and are wired up once; render() keeps them in step.
+
+function syncControls() {
+  const inHousehold = Boolean(state.me.householdId);
+  controls.hidden = !inHousehold;
+  if (!inHousehold) return;
+  for (const button of controls.querySelectorAll('[data-view]')) {
+    button.setAttribute('aria-pressed', String(button.dataset.view === state.view));
+  }
+  document.getElementById('week-nav').hidden = state.view !== 'week';
+  document.getElementById('sort-wrap').hidden = state.view !== 'chores';
+  document.getElementById('week-label').textContent = weekLabel(state.weekStart);
+  document.getElementById('this-week').hidden = state.weekStart === startOfWeek(today());
+  const isAdmin = state.me.role === 'admin';
+  const needsOption = document.querySelector('#filter option[value="needs"]');
+  needsOption.hidden = !isAdmin;
+  needsOption.disabled = !isAdmin;
+  if (!isAdmin && state.filter === 'needs') state.filter = 'everyone';
+  document.getElementById('filter').value = state.filter;
+  document.getElementById('sort').value = state.sort;
+}
+
+function setupControls() {
+  for (const button of controls.querySelectorAll('[data-view]')) {
+    // Switching view only redraws: the data is already loaded.
+    button.addEventListener('click', () => { setView(button.dataset.view); render(); });
+  }
+  document.getElementById('filter').addEventListener('change', (event) => { state.filter = event.target.value; render(); });
+  document.getElementById('sort').addEventListener('change', (event) => { state.sort = event.target.value; render(); });
+  // Another week needs that week's data, so these do fetch.
+  document.getElementById('prev-week').addEventListener('click', () => { state.weekStart = addDays(state.weekStart, -7); refresh(); });
+  document.getElementById('next-week').addEventListener('click', () => { state.weekStart = addDays(state.weekStart, 7); refresh(); });
+  document.getElementById('this-week').addEventListener('click', () => { state.weekStart = startOfWeek(today()); refresh(); });
 }
 
 // Load and redraw now (after an action, or on first load).
@@ -116,5 +160,6 @@ async function logOut() {
   try { await api('POST', '/logout'); } finally { location.href = '/login.html'; }
 }
 
+setupControls();
 refresh();
 setInterval(poll, POLL_MS);

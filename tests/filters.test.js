@@ -88,3 +88,52 @@ test('shouldRender: only when something changed and no dialog is open', async ()
   assert.equal(shouldRender('a', 'b', false), true);
   assert.equal(shouldRender('a', 'b', true), false);
 });
+
+const members = [
+  { id: 1, name: 'Alex', role: 'admin' },
+  { id: 2, name: 'Sam', role: 'member' },
+  { id: 3, name: 'Jamie', role: 'member' },
+];
+
+test('weekRows: me first, then members, former members with chores that week, then Nobody', async () => {
+  const { weekRows } = await import('../public/js/chores/filters.js');
+  const week = '2026-10-19'; // Monday
+  const list = [
+    a({ id: 1, userId: 2, userName: 'Sam', dueDate: '2026-10-21' }),      // Wednesday
+    a({ id: 2, userId: 1, userName: 'Alex', dueDate: '2026-10-19' }),     // Monday
+    a({ id: 3, userId: 9, userName: 'Kim', userLeft: true, dueDate: '2026-10-20', status: 'completed' }),
+    a({ id: 4, userId: null, userName: null, dueDate: '2026-10-25' }),    // Sunday
+    a({ id: 5, userId: 3, userName: 'Jamie', dueDate: '2026-10-27' }),    // next week: ignored
+  ];
+  const rows = weekRows(list, members, 1, week);
+  assert.deepEqual(rows.map((r) => r.label), ['You', 'Sam', 'Jamie', 'Kim (left)', 'Nobody']);
+  assert.equal(rows[0].isMe, true);
+  assert.equal(rows[0].days.length, 7);
+  assert.deepEqual(rows[0].days[0].map((x) => x.id), [2]);
+  assert.deepEqual(rows[1].days[2].map((x) => x.id), [1]);   // Wednesday = index 2
+  assert.deepEqual(rows[2].days.flat(), []);                  // Jamie: nothing this week
+  assert.deepEqual(rows[3].days[1].map((x) => x.id), [3]);
+  assert.deepEqual(rows[4].days[6].map((x) => x.id), [4]);
+});
+
+test('weekRows: no Kim or Nobody rows in a week without them', async () => {
+  const { weekRows } = await import('../public/js/chores/filters.js');
+  const list = [a({ id: 1, userId: 9, userName: 'Kim', userLeft: true, dueDate: '2026-10-13' })];
+  const rows = weekRows(list, members, 1, '2026-10-19');
+  assert.deepEqual(rows.map((r) => r.label), ['You', 'Sam', 'Jamie']);
+});
+
+test('weekProgress counts done / total for that week only', async () => {
+  const { weekProgress } = await import('../public/js/chores/filters.js');
+  const list = [
+    a({ id: 1, userId: 2, dueDate: '2026-10-19', status: 'completed' }),
+    a({ id: 2, userId: 2, dueDate: '2026-10-23' }),
+    a({ id: 3, userId: 2, dueDate: '2026-10-27' }),             // next week
+    a({ id: 4, userId: 1, dueDate: '2026-10-20' }),
+  ];
+  assert.deepEqual(weekProgress(list, members, '2026-10-19'), [
+    { userId: 1, name: 'Alex', done: 0, total: 1 },
+    { userId: 2, name: 'Sam', done: 1, total: 2 },
+    { userId: 3, name: 'Jamie', done: 0, total: 0 },
+  ]);
+});

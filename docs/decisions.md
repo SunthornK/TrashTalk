@@ -108,3 +108,14 @@ Full details are in the [design](superpowers/specs/2026-10-20-trashtalk-design.m
 - **More Pico specificity fixes** (dialog buttons were full width, roommate options didn't stretch).
 - **A request someone already cancelled** shows the server's message "This request is no longer available." and disappears. Verified by having Sam cancel while Alex clicked "Take it".
 - **"Chores this week" next to each roommate** in the dialog counts their unfinished chores due Monday–Sunday, to help pick someone fair.
+
+### Task 10: Week view, controls, progress bars (#10)
+- **Switching Week ↔ Chores doesn't ask the server for anything**; it just runs the other drawing function on data already loaded. *Why:* it's instant, and it's exactly the "grouping" from the proposal (by week vs by chore). Changing the *week* (◀ ▶) does fetch, because that week's data isn't loaded yet.
+- **The page now loads three sets of assignments**: the unfinished ones (cards), the week being shown (chart), and this week (progress bars). *Why:* the progress bars must always show *this* week even while you browse an old week. When you're looking at this week, the same data is reused instead of fetched twice.
+- **The controls are written in the HTML and connected once**, not rebuilt on every redraw. *Why:* rebuilding them every 10 seconds would close an open dropdown or move keyboard focus.
+- **With a filter on, empty rows are hidden** in the week chart ("Just me" shows only your row).
+- **The week table was too wide at first.** *Problem:* Pico makes the base font bigger on large screens, so a "minimum 44rem" table became 880px, wider than the space. *Decision:* only give the table a minimum width on narrow screens, where it scrolls sideways inside its own box.
+- **Clicking a chip opens a details dialog with the same buttons as a card.** The buttons were moved into `bits.js` (`assignmentButtons`) so the card and the dialog share one copy.
+- **The "View" switch remembers your choice** (`localStorage`), wrapped in try/catch so the page still works if the browser blocks storage. The filter and sort reset on reload on purpose.
+- **The "Needs a new person" filter is only offered to the admin.**
+- **Verified in a browser:** this week and last week (history with "late", "via Jamie", "Kim (left)"), Done ✓ from a chip updated the chip and the progress bar together, filter, sort, remembered view, and phone layout.
