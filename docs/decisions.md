@@ -77,4 +77,14 @@ Full details are in the [design](superpowers/specs/2026-10-20-trashtalk-design.m
 - **All demo dates are calculated from today** (e.g. "Alex's Trash was due yesterday"). *Why:* fixed dates would go stale. On presentation day there would be nothing "this week" and everything would be overdue.
 - **Seeding wipes everything first**, inside one transaction. *Why:* you can re-run `npm run seed` right before the demo to get a clean, predictable state, and running it twice doesn't create duplicates.
 - **What the demo contains**, so every screen has something to show: Alex's overdue Trash; Jamie asking Alex to take Vacuum (with a message); Alex waiting on Sam for Bathroom; a "Nobody" chore (Mop kitchen, since Kim moved out); finished, late and handed-over chores in the past two weeks; Kim's old chores; an archived chore (Water plants) to restore; and two chores next week.
-- **Demo logins:** `alex@example.com` (admin), `sam@`, `jamie@`, `robin@`, `kim@` (no household), all with password `password123`. Fine for synthetic demo data only.
+- **Demo logins (Task 6):** `alex@example.com` (admin), `sam@`, `jamie@`, `robin@`, `kim@` (no household), all with password `password123`. Fine for synthetic demo data only.
+
+### Task 7: Login page and browser foundation (#7)
+- **Pico.css and the doodle font are stored in the project** (`public/vendor/`, `public/fonts/`), not loaded from the internet. *Why:* the demo must work even if the room's Wi-Fi is bad. (Pico is MIT licensed; Gloria Hallelujah is under the SIL Open Font License, both free to include.)
+- **Our colours didn't apply at first.** *Problem:* Pico defines its light-theme colours with a more specific CSS selector than our `:root`, so Pico's won (the yellow button had white text and the "Create an account" link was white on white). *Decision:* use the exact same selector as Pico. Since our file loads after Pico's, ours now wins.
+- **The page always uses the light theme** (`data-theme="light"`). *Why:* the doodle look is ink on white paper; an automatic dark mode would break it.
+- **Form errors appear inside the form, not as pop-ups.** *Problem:* "Wrong email or password." first showed as a toast that disappears after 4 seconds, which is easy to miss. *Decision:* errors about one field appear under that field; other form errors appear in a red box at the top of the form (`role="alert"`, so screen readers announce it). Toasts are kept for actions that aren't in a form.
+- **The login page doesn't redirect to itself.** *Problem:* `api()` sends you to the login page when the server says "not logged in" (401). On the login page that would reload forever. *Decision:* skip the redirect when you're already on the login page.
+- **The form has `novalidate`**, so the browser's own pop-up bubbles don't appear and every error message comes from our server in our style. The server checks everything anyway.
+- **Buttons are disabled while their request runs** (`withBusy`). *Why:* a double-click can't create two accounts or send two requests.
+- **A trash-can emoji as the tab icon**, written directly in the HTML (no image file), which also stops a "favicon not found" error in the console.

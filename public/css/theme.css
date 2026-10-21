@@ -1,0 +1,116 @@
+/* Trash Talk theme: "doodle frame, clean text" (spec §8.1), on top of Pico.
+   The doodle font is only for the logo, headings and chore titles. */
+
+@font-face {
+  font-family: 'Gloria Hallelujah';
+  src: url('../fonts/gloria-hallelujah.woff2') format('woff2');
+  font-display: swap;
+}
+
+/* Same selector Pico uses for its light theme, so ours (loaded later) wins. */
+:root:not([data-theme='dark']), [data-theme='light'] {
+  --ink: #222;
+  --paper: #ffffff;
+  --yellow: #ffd84d;
+  --orange: #ff7a59;
+  --blue: #8fd3ff;
+  --green: #b8f2a0;
+  --mine: #fffbe6;
+  --purple: #e8dcff;
+  --red: #b3261e;
+  --muted: #5c5c5c;
+  --doodle: 'Gloria Hallelujah', cursive;
+  --wobble: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  --shadow: 3px 3px 0 var(--ink);
+
+  /* Pico's own variables, so its forms and buttons match. */
+  --pico-font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --pico-background-color: var(--paper);
+  --pico-color: var(--ink);
+  --pico-primary: var(--ink);
+  --pico-primary-hover: #000;
+  --pico-primary-focus: rgba(34, 34, 34, 0.35);
+  --pico-primary-background: var(--yellow);
+  --pico-primary-hover-background: #ffcf1f;
+  --pico-primary-border: var(--ink);
+  --pico-primary-hover-border: var(--ink);
+  --pico-primary-inverse: var(--ink);
+  --pico-form-element-background-color: var(--paper);
+  --pico-form-element-border-color: var(--ink);
+  --pico-form-element-focus-color: var(--ink);
+  --pico-border-radius: 6px;
+}
+
+body { background: var(--paper); }
+
+h1, h2, h3, .logo, .doodle { font-family: var(--doodle); font-weight: normal; letter-spacing: 0; }
+
+.wobble { border-radius: var(--wobble); }
+
+/* --- Top bar ---------------------------------------------------------- */
+.topbar {
+  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+  padding: 0.6rem 1rem; border-bottom: 2.5px solid var(--ink);
+}
+.topbar .logo { font-size: 1.4rem; color: var(--ink); text-decoration: none; margin-right: 0.5rem; }
+.topbar nav a { color: var(--ink); text-decoration: none; padding: 0.15rem 0.6rem; }
+.topbar nav a[aria-current='page'] { background: var(--yellow); border: 2px solid var(--ink); border-radius: var(--wobble); }
+.topbar .who { margin-left: auto; color: var(--muted); display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap; }
+.topbar .who button { padding: 0.15rem 0.6rem; margin: 0; }
+
+/* --- Buttons ----------------------------------------------------------- */
+button, [role='button'], [type='submit'], [type='button'] {
+  --pico-background-color: var(--paper);
+  --pico-border-color: var(--ink);
+  --pico-color: var(--ink);
+  border-width: 2px;
+  border-radius: var(--wobble);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+button:hover, [role='button']:hover { --pico-background-color: #f4f4f4; --pico-color: var(--ink); --pico-border-color: var(--ink); }
+button.primary, button[type='submit'] { --pico-background-color: var(--yellow); }
+button.primary:hover, button[type='submit']:hover { --pico-background-color: #ffcf1f; }
+button.admin { --pico-background-color: var(--purple); }
+button.danger { --pico-color: var(--red); --pico-border-color: var(--red); box-shadow: 2px 2px 0 var(--red); }
+button.secondary { --pico-background-color: var(--paper); }
+button.link {
+  --pico-background-color: transparent; --pico-color: var(--ink);
+  border: none; box-shadow: none; padding: 0; margin: 0;
+  text-decoration: underline; width: auto; vertical-align: baseline;
+}
+button.small { padding: 0.2rem 0.65rem; font-size: 0.85rem; }
+
+/* --- Status tags (always text + colour) --------------------------------- */
+.tag {
+  display: inline-block; font-size: 0.75rem; font-weight: 600; line-height: 1.5;
+  padding: 0 0.45rem; border: 2px solid var(--ink); border-radius: var(--wobble);
+  color: var(--ink); background: var(--paper); white-space: nowrap;
+}
+.tag--over { background: var(--orange); }
+.tag--pend { background: var(--blue); }
+.tag--done { background: var(--green); }
+.tag--none { border-style: dashed; }
+.tag--admin { background: var(--yellow); }
+
+/* --- Forms and feedback ------------------------------------------------ */
+.form-error {
+  color: var(--red); font-weight: 600; border: 2px solid var(--red);
+  border-radius: var(--wobble); padding: 0.4rem 0.8rem; margin-bottom: 1rem;
+}
+.field-error { display: block; color: var(--red); font-weight: 600; margin-top: -0.6rem; margin-bottom: 0.8rem; }
+
+#toasts { position: fixed; right: 1rem; bottom: 1rem; display: grid; gap: 0.5rem; z-index: 1000; max-width: min(22rem, calc(100vw - 2rem)); }
+.toast { background: var(--paper); border: 2.5px solid var(--ink); box-shadow: var(--shadow); padding: 0.6rem 0.9rem; }
+.toast--error { border-color: var(--red); box-shadow: 3px 3px 0 var(--red); }
+
+dialog article { border: 3px solid var(--ink); box-shadow: 6px 6px 0 var(--ink); }
+dialog article footer { display: flex; gap: 0.5rem; justify-content: flex-end; flex-wrap: wrap; }
+dialog article footer button { margin: 0; width: auto; }
+
+.muted { color: var(--muted); }
+
+/* --- Login page -------------------------------------------------------- */
+.auth { max-width: 26rem; margin: 2.5rem auto; }
+.auth article { border: 2.5px solid var(--ink); box-shadow: 5px 5px 0 var(--ink); border-radius: var(--wobble); padding: 1.5rem 1.6rem; }
+.auth h1 { text-align: center; margin-bottom: 1rem; }
+.auth .switch { text-align: center; margin: 0.5rem 0 0; }
