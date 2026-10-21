@@ -503,7 +503,32 @@ The rules behind these are pure functions in [filters.js](../public/js/chores/fi
 
 ---
 
-## 14. Tests
+## 14. Admin actions on the Chores page (Task 11)
+
+The admin uses the **same Chores page** as everyone, plus a few **purple** buttons ([admin-dialogs.js](../public/js/chores/admin-dialogs.js), `adminButtons` in [bits.js](../public/js/chores/bits.js)):
+
+| Button | Where | What it does |
+|---|---|---|
+| **+ Assign next** | every card | dialog with person + due date already filled in → `POST /api/assignments` |
+| **Reassign…** | overdue or "Nobody" cards (red outline), the week view's details, the "Needs a new person" panel | dialog to pick someone → `PATCH /api/assignments/:id` (cancels any pending request) |
+| **+ New chore** | dashed card at the end | name + how often → `POST /api/chores` |
+
+**The pre-filled suggestion** (`suggestNext`, tested): the next person after whoever had it last (in member order, wrapping round), due on the last due date + the chore's frequency (weekly → +7 days). Example: Robin had Groceries on Sun 25 Oct, so it suggests Alex on Sun 1 Nov.
+
+**Who sees what.** Only the admin gets the purple buttons, the "+ New chore" card, the "Needs a new person" panel and filter. **But hiding buttons is not security.** Anyone could send the request by hand. The server checks every admin request with `requireAdmin` and answers **403** to members.
+
+**Errors stay in the dialog.** If the server refuses (e.g. an empty chore name), the message appears under the field and the dialog stays open, so nothing typed is lost.
+
+**Say this:** "Admin tools sit right where the chores are. The page only shows them to the admin, but the real check is on the server: every admin route requires the admin role, so a member's request is refused with 403."
+
+**Likely questions**
+- *Can a member create chores by calling the API directly?* No. The server checks the role on every request (tested).
+- *How does it pick the next person?* The member after the last assignee, wrapping round, on last due date + frequency. The admin can change both.
+- *Where's the 'delete' in your CRUD?* Archiving a chore (Household page, Task 12) and cancelling a swap request.
+
+---
+
+## 15. Tests
 
 `npm test` runs the files in `tests/` using Node's built-in test runner. Each test starts the real app on a random port with an empty in-memory database, sends real requests, and checks the answers. For example, "registering `Alex@Example.com` after `alex@example.com` gives 409".
 
