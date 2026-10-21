@@ -30,6 +30,7 @@ async function run(button, request, successMessage) {
     if (successMessage) toast(successMessage);
   } catch (err) {
     handleError(err); // e.g. 409 "This request is no longer available."
+    if (err.status === 0) return; // server unreachable: keep the page as it is
   }
   await refresh();
 }
@@ -90,7 +91,15 @@ const actions = {
 
 // --- Drawing ---------------------------------------------------------
 
+// Redrawing replaces the buttons, so remember which one had keyboard focus
+// and put focus back on its new copy (same data-focus-key) afterwards.
 function render() {
+  const focusKey = document.activeElement?.dataset?.focusKey;
+  draw();
+  if (focusKey) document.querySelector(`[data-focus-key="${CSS.escape(focusKey)}"]`)?.focus();
+}
+
+function draw() {
   renderTopbar(state.me);
   syncControls();
   if (!state.me.householdId) {
@@ -152,7 +161,9 @@ async function refresh() {
     render();
   } catch (err) {
     if (err.status === 401) return; // api() is already sending us to the login page
-    showLoadError(err);
+    // Already showing data? Keep it on screen and just say what went wrong.
+    if (lastJson) toast(err.message, 'error');
+    else showLoadError(err);
   }
 }
 

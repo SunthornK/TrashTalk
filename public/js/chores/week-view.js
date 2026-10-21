@@ -61,6 +61,7 @@ function chip(assignment, state, actions) {
   return el('button', {
     type: 'button',
     class: `chip chip--${kind}`,
+    'data-focus-key': `chip-${assignment.id}`,
     'aria-label': `${assignment.choreTitle}: ${whoLabel(assignment, state.me.id)}, ${label}${extra ? `, ${extra}` : ''}. Due ${formatShort(assignment.dueDate)}.`,
     onclick: () => openDetails(assignment, state, actions),
   },

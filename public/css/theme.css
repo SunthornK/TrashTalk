@@ -283,3 +283,13 @@ table.week tr.me th, table.week tr.me td { background: var(--mine); }
 .leave { border-top: 2.5px solid var(--ink); padding-top: 1rem; }
 .leave button { width: auto; }
 .inline-form + .field-error { margin-top: 0.4rem; }
+
+/* --- Keyboard focus -------------------------------------------------------- */
+/* Our hard shadows replace Pico's focus ring (which is also a box-shadow),
+   so draw a clear outline instead. :focus-visible = only for keyboard users. */
+:where(a, button, [role='button'], [role='tab'], input, select, textarea, summary, label.pick):focus-visible {
+  outline: 3px solid #1a5fb4;
+  outline-offset: 2px;
+}
+label.pick:has(input:focus-visible) { outline: 3px solid #1a5fb4; outline-offset: 2px; }
+.toggle button:focus-visible { outline-offset: -5px; }

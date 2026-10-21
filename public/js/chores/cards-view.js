@@ -9,7 +9,7 @@ export function renderCards(container, state, actions) {
   const allCards = buildChoreCards(household.chores, assignments);
 
   const newChore = me.role === 'admin' &&
-    el('button', { type: 'button', class: 'add-card wobble', onclick: (e) => actions.newChore(e.currentTarget) }, '+ New chore');
+    el('button', { type: 'button', class: 'add-card wobble', 'data-focus-key': 'new-chore', onclick: (e) => actions.newChore(e.currentTarget) }, '+ New chore');
 
   if (allCards.length === 0) {
     container.replaceChildren(

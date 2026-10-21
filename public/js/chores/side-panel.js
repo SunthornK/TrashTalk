@@ -14,8 +14,8 @@ function incomingRequest(swap, actions) {
     ),
     swap.message && el('p', { class: 'request-message' }, `“${swap.message}”`),
     el('div', { class: 'actions' },
-      el('button', { class: 'primary small', onclick: (e) => actions.accept(swap, e.currentTarget) }, 'Take it'),
-      el('button', { class: 'secondary small', onclick: (e) => actions.reject(swap, e.currentTarget) }, 'No'),
+      el('button', { class: 'primary small', 'data-focus-key': `accept-${swap.id}`, onclick: (e) => actions.accept(swap, e.currentTarget) }, 'Take it'),
+      el('button', { class: 'secondary small', 'data-focus-key': `reject-${swap.id}`, onclick: (e) => actions.reject(swap, e.currentTarget) }, 'No'),
     ),
   );
 }
@@ -23,7 +23,7 @@ function incomingRequest(swap, actions) {
 function sentRequest(swap, actions) {
   return el('div', { class: 'request request--sent' },
     el('p', {}, `You asked ${swap.targetName}: `, el('strong', {}, swap.choreTitle), ' · waiting'),
-    el('button', { class: 'link small', onclick: (e) => actions.cancelSwap(swap, e.currentTarget) }, 'Cancel'),
+    el('button', { class: 'link small', 'data-focus-key': `side-cancel-${swap.id}`, onclick: (e) => actions.cancelSwap(swap, e.currentTarget) }, 'Cancel'),
   );
 }
 
@@ -65,7 +65,7 @@ function needsSection(state, actions) {
     needs.length === 0 && el('p', { class: 'muted' }, 'Everything has someone. 👍'),
     needs.map((a) => el('div', { class: 'request' },
       el('p', {}, el('strong', {}, a.choreTitle), ` · ${a.userId === null ? 'nobody' : `${a.userName}, overdue`} · ${formatShort(a.dueDate)}`),
-      el('button', { class: 'admin small', onclick: (e) => actions.reassign(a, e.currentTarget) }, 'Reassign…'),
+      el('button', { class: 'admin small', 'data-focus-key': `side-reassign-${a.id}`, onclick: (e) => actions.reassign(a, e.currentTarget) }, 'Reassign…'),
     )),
   );
 }

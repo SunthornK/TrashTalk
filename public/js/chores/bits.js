@@ -14,8 +14,8 @@ export function adminButtons(assignment, chore, me, actions) {
   if (me.role !== 'admin') return [];
   return [
     assignment && needsNewPerson(assignment) &&
-      el('button', { class: 'admin small', onclick: (e) => actions.reassign(assignment, e.currentTarget) }, 'Reassign…'),
-    chore && el('button', { class: 'admin small', onclick: (e) => actions.assignNext(chore, e.currentTarget) }, '+ Assign next'),
+      el('button', { class: 'admin small', 'data-focus-key': `reassign-${assignment.id}`, onclick: (e) => actions.reassign(assignment, e.currentTarget) }, 'Reassign…'),
+    chore && el('button', { class: 'admin small', 'data-focus-key': `assign-${chore.id}`, onclick: (e) => actions.assignNext(chore, e.currentTarget) }, '+ Assign next'),
   ];
 }
 
@@ -35,12 +35,12 @@ export function assignmentButtons(assignment, me, actions) {
   if (!assignment || assignment.status !== 'assigned' || assignment.userId !== me.id) return [];
   if (assignment.pendingSwap) {
     return [
-      el('button', { class: 'secondary small', onclick: (e) => actions.cancelSwap(assignment.pendingSwap, e.currentTarget) }, 'Cancel request'),
+      el('button', { class: 'secondary small', 'data-focus-key': `cancel-${assignment.pendingSwap.id}`, onclick: (e) => actions.cancelSwap(assignment.pendingSwap, e.currentTarget) }, 'Cancel request'),
     ];
   }
   return [
-    el('button', { class: 'primary small', onclick: (e) => actions.complete(assignment, e.currentTarget) }, 'Done ✓'),
-    el('button', { class: 'secondary small', onclick: (e) => actions.openSwap(assignment, e.currentTarget) }, "Can't do it…"),
+    el('button', { class: 'primary small', 'data-focus-key': `complete-${assignment.id}`, onclick: (e) => actions.complete(assignment, e.currentTarget) }, 'Done ✓'),
+    el('button', { class: 'secondary small', 'data-focus-key': `swap-${assignment.id}`, onclick: (e) => actions.openSwap(assignment, e.currentTarget) }, "Can't do it…"),
   ];
 }
 
