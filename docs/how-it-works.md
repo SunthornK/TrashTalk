@@ -329,7 +329,66 @@ Every date is worked out **from today**, so the demo always shows the same situa
 
 ---
 
-## 10. Tests
+## 10. The browser side: basics (Task 7)
+
+Everything in `public/` is sent to the browser as-is: HTML pages, our CSS, and our JavaScript. There's no framework, just plain JavaScript and the browser's built-in **DOM** (the page as JavaScript objects you can change).
+
+**Modules.** Each JS file is a module: `<script type="module" src="/js/login.js">`. Files share code with `export` and `import`, e.g. `import { api } from './api.js'`. `public/js/dates.js` is even shared with the server.
+
+**Talking to the server: `fetch` + `async`/`await`.** [public/js/api.js](../public/js/api.js) wraps `fetch`:
+```js
+const me = await api('POST', '/login', { email, password });
+```
+- `fetch` sends the request **without reloading the page**.
+- `await` means "wait for the answer, then continue". The page stays responsive meanwhile.
+- If the server answers with an error (400, 401, 409…), `api()` **throws** an `ApiError` containing the server's message and the `field` it's about. The page catches it with `try { … } catch (err) { … }`.
+- If the server says 401 ("not logged in"), `api()` sends you to the login page.
+
+**Reacting to the user: events.**
+```js
+form.addEventListener('submit', async (event) => {
+  event.preventDefault(); // don't let the browser reload the page
+  ...
+});
+```
+`addEventListener` runs our function when something happens: `submit`, `click`, `change`. `event.preventDefault()` stops the browser's default action (submitting a form normally reloads the page), because we send the data with `fetch` instead.
+
+**Building the page: the DOM.** [public/js/ui.js](../public/js/ui.js) `el()` is our one helper for creating elements:
+```js
+el('button', { class: 'primary', onclick: save }, 'Save')
+// is the same as:
+const b = document.createElement('button');
+b.className = 'primary';
+b.addEventListener('click', save);
+b.append('Save');
+```
+
+**Feedback helpers** (also in `ui.js`):
+- `showFieldError(form, 'password', 'Password must be…')`: red message under that input, and the input marked `aria-invalid`.
+- `showFormError(form, 'Wrong email or password.')`: red box at the top of the form.
+- `toast('Request sent to Jamie')`: a short notice in the corner that disappears after 4 seconds.
+- `withBusy(button, fn)`: disables the button while the request runs, so double-clicks can't send twice.
+- `confirmDialog('Remove Sam?', 'Remove')`: an "are you sure?" pop-up using the built-in `<dialog>` element.
+
+### The login page, line by line ([public/js/login.js](../public/js/login.js))
+1. Find the form, title, name field, buttons with `document.getElementById`.
+2. `mode` is `'login'` or `'register'`. `showMode()` updates the title, button text, and shows or hides the name field (`nameField.hidden = …`). The same form does both jobs.
+3. Clicking "Create an account" flips `mode` and calls `showMode()`.
+4. On **submit**: `preventDefault()`, clear old errors, read the inputs, then `api('POST', '/login' or '/register', body)` inside `withBusy`.
+5. Success → `location.href = '/'` (go to the chores page). Error → `handleError(err, form)` puts the message under the right field or at the top of the form.
+6. When the page loads, it asks `GET /api/me`. If you're already logged in, it sends you straight to `/`.
+
+**Say this:** "The browser never reloads to talk to the server. It uses fetch with async/await, catches errors, and shows the server's message next to the right input. The page is updated by creating and changing DOM elements in JavaScript."
+
+**Likely questions**
+- *Why `event.preventDefault()`?* A form submit normally reloads the page. We stop that and send the data with `fetch` instead.
+- *What does `await` do?* It pauses this function until the server answers, without freezing the page.
+- *Where are the validation rules?* On the server, so they can't be skipped. The browser just shows the messages.
+- *How is it accessible?* Every input has a `<label>`. Errors are linked to their input with `aria-describedby` and announced with `role="alert"`. Buttons are real `<button>`s, so the keyboard works.
+
+---
+
+## 11. Tests
 
 `npm test` runs the files in `tests/` using Node's built-in test runner. Each test starts the real app on a random port with an empty in-memory database, sends real requests, and checks the answers. For example, "registering `Alex@Example.com` after `alex@example.com` gives 409".
 
