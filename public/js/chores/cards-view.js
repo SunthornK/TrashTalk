@@ -47,10 +47,16 @@ function whenLine(assignment, me) {
   );
 }
 
+// Only the buttons you're allowed to use. (The server checks again anyway.)
 function cardButtons(current, me, actions) {
   if (!current || current.status !== 'assigned' || current.userId !== me.id) return [];
-  if (current.pendingSwap) return [];
+  if (current.pendingSwap) {
+    return [
+      el('button', { class: 'secondary small', onclick: (e) => actions.cancelSwap(current.pendingSwap, e.currentTarget) }, 'Cancel request'),
+    ];
+  }
   return [
-    el('button', { class: 'primary small', onclick: (event) => actions.complete(current, event.currentTarget) }, 'Done ✓'),
+    el('button', { class: 'primary small', onclick: (e) => actions.complete(current, e.currentTarget) }, 'Done ✓'),
+    el('button', { class: 'secondary small', onclick: (e) => actions.openSwap(current, e.currentTarget) }, "Can't do it…"),
   ];
 }

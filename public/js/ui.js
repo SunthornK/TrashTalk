@@ -35,8 +35,10 @@ export function toast(message, kind = 'ok') {
 
 // Show a message under one input, and mark the input invalid.
 export function showFieldError(form, field, message) {
-  const input = form.elements[field];
+  let input = form.elements[field];
   if (!input) return toast(message, 'error');
+  // A group of radio buttons: put the message after the whole group.
+  if (input instanceof RadioNodeList) input = input[0].closest('fieldset') ?? input[0];
   const id = `${input.id || field}-error`;
   let note = document.getElementById(id);
   if (!note) {
@@ -88,6 +90,44 @@ export function handleError(err, form) {
   if (form && err.field && form.elements[err.field]) showFieldError(form, err.field, message);
   else if (form) showFormError(form, message);
   else toast(message, 'error');
+}
+
+// A dialog with a form in it. `onSubmit(form)` does the work (usually an
+// api() call). If it throws, the error is shown inside the dialog and the
+// dialog stays open; if it succeeds, the dialog closes.
+// Resolves to true if it was submitted successfully, false if cancelled.
+export function openFormDialog({ title, fields, submitLabel, submitClass = 'primary', onSubmit }) {
+  return new Promise((resolve) => {
+    const submit = el('button', { type: 'submit', class: submitClass }, submitLabel);
+    const form = el('form', { method: 'dialog', novalidate: true },
+      el('h2', {}, title),
+      fields,
+      el('footer', {},
+        el('button', { type: 'button', class: 'secondary', onclick: () => dialog.close() }, 'Cancel'),
+        submit,
+      ),
+    );
+    const dialog = el('dialog', {}, el('article', { class: 'wobble' }, form));
+    let succeeded = false;
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      clearFormErrors(form);
+      try {
+        await withBusy(submit, () => onSubmit(form));
+        succeeded = true;
+        dialog.close();
+      } catch (err) {
+        handleError(err, form);
+      }
+    });
+    dialog.addEventListener('close', () => {
+      dialog.remove();
+      resolve(succeeded);
+    });
+    document.body.append(dialog);
+    dialog.showModal();
+  });
 }
 
 // "Are you sure?" using the built-in <dialog> (keyboard and Esc work).

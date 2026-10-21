@@ -27,17 +27,24 @@ export function setView(view) {
   try { localStorage.setItem('tt.view', view); } catch { /* not important */ }
 }
 
-// Load everything the page needs. The three household requests run at the
+// Fetch everything the page needs. The three household requests run at the
 // same time (Promise.all) instead of one after another.
-export async function loadAll() {
-  state.me = await api('GET', '/me');
-  if (!state.me.householdId) return;
+export async function fetchAll() {
+  const me = await api('GET', '/me');
+  if (!me.householdId) return { me, household: null, assignments: [], swaps: { incoming: [], sent: [] } };
   const [household, assignments, swaps] = await Promise.all([
     api('GET', '/household'),
     api('GET', '/assignments'),
     api('GET', '/swaps'),
   ]);
-  state.household = household;
-  state.assignments = assignments;
-  state.swaps = swaps;
+  return { me, household, assignments, swaps };
+}
+
+// Put freshly fetched data into the state.
+export function applyData(data) {
+  Object.assign(state, data);
+}
+
+export async function loadAll() {
+  applyData(await fetchAll());
 }

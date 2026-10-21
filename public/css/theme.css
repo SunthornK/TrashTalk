@@ -154,3 +154,39 @@ dialog article footer button { margin: 0; width: auto; }
 .no-household { max-width: 30rem; margin: 2rem auto; padding: 1.5rem; border: 2.5px solid var(--ink); box-shadow: 5px 5px 0 var(--ink); text-align: center; }
 .no-household form { text-align: left; margin-top: 1rem; }
 .no-household .or { margin: 0.5rem 0; }
+
+/* --- Side panel (wide screens) and banner (narrow screens) -------------- */
+@media (min-width: 900px) {
+  .layout { grid-template-columns: minmax(0, 1fr) 18rem; align-items: start; }
+  .page #banner { display: none; }
+}
+@media (max-width: 899.98px) {
+  .page #side { display: none; }
+}
+#side { border-left: 2.5px solid var(--ink); padding-left: 1.2rem; display: grid; gap: 1.2rem; }
+.panel-section h2 { font-size: 1.25rem; margin-bottom: 0.5rem; }
+.panel-section + .panel-section { border-top: 2px dashed #bbb; padding-top: 1rem; }
+.request { padding: 0.5rem 0; font-size: 0.92rem; }
+.request + .request { border-top: 1.5px dashed #ccc; }
+.request p { margin: 0 0 0.3rem; }
+.request .avatar { vertical-align: middle; }
+.request-message { font-style: italic; color: var(--muted); }
+.request .actions { display: flex; gap: 0.4rem; }
+.request .actions button { margin: 0; width: auto; }
+.request--sent { color: var(--muted); display: flex; flex-wrap: wrap; gap: 0.2rem 0.6rem; align-items: baseline; }
+.request--sent p { margin: 0; }
+
+#banner { display: grid; gap: 0.6rem; margin-bottom: 1rem; }
+.banner { background: #fff8d6; border: 2.5px dashed var(--ink); padding: 0.4rem 0.9rem; }
+
+/* --- Swap dialog -------------------------------------------------------- */
+.pick-list { border: none; padding: 0; margin: 0 0 1rem; display: grid; gap: 0.45rem; }
+.pick-list .pick { width: 100%; display: flex; align-items: center; gap: 0.6rem; border: 2px solid var(--ink); padding: 0.45rem 0.7rem; cursor: pointer; margin: 0; }
+.pick input { margin: 0; }
+.pick:has(input:checked) { background: var(--yellow); box-shadow: 2px 2px 0 var(--ink); }
+.pick-name { font-weight: 600; flex: 1; }
+.swap-note { font-size: 0.9rem; }
+dialog h2 { font-size: 1.4rem; margin-bottom: 0.6rem; }
+dialog form footer { display: flex; gap: 0.5rem; justify-content: flex-end; flex-wrap: wrap; margin-top: 1rem; }
+dialog form footer [type] { margin: 0; width: auto; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

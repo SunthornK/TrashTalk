@@ -81,3 +81,10 @@ test('filterCards: everyone shows all cards; other filters look at the current a
   assert.equal(filterCards(cards, 'everyone', ME).length, 3);
   assert.deepEqual(filterCards(cards, 'mine', ME).map((c) => c.chore.title), ['Vacuum']);
 });
+
+test('shouldRender: only when something changed and no dialog is open', async () => {
+  const { shouldRender } = await import('../public/js/chores/filters.js');
+  assert.equal(shouldRender('a', 'a', false), false);
+  assert.equal(shouldRender('a', 'b', false), true);
+  assert.equal(shouldRender('a', 'b', true), false);
+});

@@ -38,6 +38,13 @@ export function sortCards(cards, sort) {
   });
 }
 
+// Should the 10-second refresh redraw the page? Only if the data actually
+// changed, and never while a dialog is open: redrawing would wipe what
+// someone is typing.
+export function shouldRender(previousJson, nextJson, dialogOpen) {
+  return !dialogOpen && previousJson !== nextJson;
+}
+
 // "Everyone" shows every card (including chores nobody is assigned to yet);
 // the other filters keep the cards whose current assignment matches.
 export function filterCards(cards, filter, meId) {

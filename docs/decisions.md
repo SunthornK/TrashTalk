@@ -98,3 +98,13 @@ Full details are in the [design](superpowers/specs/2026-10-20-trashtalk-design.m
 - **The three requests that load the page run at the same time** (`Promise.all`), so the page appears faster than asking one after another.
 - **Pico's grey "secondary" buttons were restyled** to our white-with-ink look (same selector problem as Task 7).
 - **Verified in a browser:** cards and tags for Alex match the demo data; Done ✓ shows a notice and the card updates without reloading; Kim sees "You're not in a household yet", and when Alex added her, her page switched to the chores by itself within 10 seconds.
+
+### Task 9: The swap flow in the browser (#9)
+- **Live updates by asking every 10 seconds** ("polling") instead of the server pushing. *Why:* it's plain `fetch` + `setInterval`, a few lines, nothing extra to install or explain. Ten seconds is quick enough for a household.
+- **The refresh never redraws while a dialog is open, or when nothing changed.** *Problem:* redrawing replaces the page's elements, so a message half-typed in the "Who could take it?" dialog would vanish. *Decision:* compare the new data with the last data (as text) and check for an open `<dialog>`; only redraw if it changed *and* no dialog is open (`shouldRender`, tested). Verified: typed text survived a refresh while Jamie cancelled a request in the background.
+- **One refresh loop for the whole page**, including the "not in a household yet" screen (replaces the separate timer from Task 8).
+- **Dialogs show their own errors and stay open** (`openFormDialog` in `ui.js`, reused by the admin dialogs later). *Why:* if the server refuses (e.g. message too long), the person can fix it without starting over. Sending without choosing a roommate shows "Choose who you want to ask." right in the dialog.
+- **The banner showed on laptops too.** *Problem:* the CSS rule that hides the banner on wide screens came *before* the rule that styles it, so the later one won and the request appeared twice. *Decision:* make the hide rules more specific (`.page #banner`).
+- **More Pico specificity fixes** (dialog buttons were full width, roommate options didn't stretch).
+- **A request someone already cancelled** shows the server's message "This request is no longer available." and disappears. Verified by having Sam cancel while Alex clicked "Take it".
+- **"Chores this week" next to each roommate** in the dialog counts their unfinished chores due Monday–Sunday, to help pick someone fair.
