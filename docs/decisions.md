@@ -154,3 +154,8 @@ The reviewer found **no critical problems**, and confirmed the household scoping
 - **The whole chores area was a "live region"**, so a screen reader would re-read the entire page after every update. Only the toasts are announced now.
 
 Not fixed now (small, listed so we know): impossible API values like `active: "false"` or non-text names are coerced instead of refused; login time differs slightly for unknown emails; logout can be triggered by another site (harmless); a very rare stale redraw that fixes itself within 10 s; the "Choose who you want to ask" message sits inside the option when there's only one roommate; expired sessions are never deleted; "via Jamie" stays after a later reassign.
+
+### After review: fit the whole window (Sunthorn's feedback)
+- **Problem:** on big screens the content was capped at a fixed width and centred, leaving empty strips on both sides and not lining up with the top bar. The long side panel also made the whole page scroll even when the chart was short.
+- **Decision:** the Chores page now uses the full window width, with the same side padding as the top bar. On wide screens the side panel stays in view (`position: sticky`) and scrolls on its own, and its width grows a little with the window. The Household page stays a readable column (max 60rem), centred, because long lines of form text are harder to read.
+- **Checked:** 1280×720, 1440×900, 1536×864, 1920×1080, 2560×1440: no sideways scrolling; the week view fits in one window from 1440×900 up; the cards grid shows 2–5 columns depending on width.

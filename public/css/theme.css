@@ -293,3 +293,18 @@ table.week tr.me th, table.week tr.me td { background: var(--mine); }
 }
 label.pick:has(input:focus-visible) { outline: 3px solid #1a5fb4; outline-offset: 2px; }
 .toggle button:focus-visible { outline-offset: -5px; }
+
+/* --- Use the whole window ---------------------------------------------- */
+/* Full width, lined up with the top bar (same 1rem side padding). */
+.page { max-width: none; padding: 1rem; }
+.household { max-width: 60rem; margin: 0 auto; }
+@media (min-width: 900px) {
+  /* The side panel stays in view and scrolls on its own, so the page
+     itself fits in one window even when the panel is long. */
+  .layout { grid-template-columns: minmax(0, 1fr) clamp(18rem, 24vw, 24rem); }
+  #side {
+    position: sticky; top: 1rem;
+    max-height: calc(100vh - 6rem); overflow-y: auto;
+    padding-right: 0.4rem;
+  }
+}
