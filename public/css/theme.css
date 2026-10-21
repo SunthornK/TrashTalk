@@ -252,3 +252,34 @@ table.week tr.me th, table.week tr.me td { background: var(--mine); }
   --pico-background-color: var(--paper); --pico-color: var(--muted);
 }
 .add-card:hover { --pico-background-color: var(--purple); --pico-color: var(--ink); }
+
+/* --- Household page -------------------------------------------------------- */
+.household { max-width: 46rem; }
+.household h1 { margin-bottom: 1rem; }
+.tabs { display: flex; gap: 0.3rem; border-bottom: 2.5px solid var(--ink); margin-bottom: 1.2rem; }
+.tabs [role='tab'] {
+  width: auto; margin: 0 0 -2.5px; border: 2.5px solid var(--ink); border-bottom: none;
+  border-radius: 10px 10px 0 0; box-shadow: none; padding: 0.35rem 1rem; font-weight: 600;
+  --pico-background-color: var(--paper); --pico-color: var(--ink);
+}
+.tabs [role='tab'][aria-selected='true'] { --pico-background-color: var(--yellow); }
+.people, .chore-list { list-style: none; padding: 0; margin: 0 0 1.5rem; }
+.person, .chore-row {
+  display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap; list-style: none;
+  padding: 0.6rem 0; margin: 0; border-bottom: 1.5px dashed #bbb;
+}
+.person-name, .chore-row-name { display: flex; flex-direction: column; flex: 1; min-width: 10rem; }
+.person-name .muted, .chore-row-name .muted { font-size: 0.85rem; }
+.person-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.person-actions button { margin: 0; width: auto; }
+.chore-row.archived .chore-row-name { opacity: 0.6; }
+.add-member { margin-bottom: 1.5rem; }
+.add-member label { font-weight: 600; margin-bottom: 0; }
+.inline-form { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; width: 100%; }
+.inline-form input { flex: 1; min-width: 12rem; margin: 0; }
+.inline-form select { width: auto; margin: 0; }
+.inline-form button { margin: 0; width: auto; }
+.edit-chore { width: 100%; margin: 0; }
+.leave { border-top: 2.5px solid var(--ink); padding-top: 1rem; }
+.leave button { width: auto; }
+.inline-form + .field-error { margin-top: 0.4rem; }

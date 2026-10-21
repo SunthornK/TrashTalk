@@ -10,14 +10,13 @@ import { renderSidePanel, renderBanner, progressSection } from './side-panel.js'
 import { openSwapDialog } from './swap-dialog.js';
 import { openAssignDialog, openReassignDialog, openNewChoreDialog } from './admin-dialogs.js';
 import { renderNoHousehold } from './no-household.js';
+import { renderTopbar } from '../topbar.js';
 
 const content = document.getElementById('content');
 const side = document.getElementById('side');
 const banner = document.getElementById('banner');
-const nav = document.getElementById('nav');
 const controls = document.getElementById('controls');
 const progressNarrow = document.getElementById('progress-narrow');
-const who = document.getElementById('who');
 
 const POLL_MS = 10000;
 let lastJson = '';
@@ -91,18 +90,8 @@ const actions = {
 
 // --- Drawing ---------------------------------------------------------
 
-function renderTopbar() {
-  const { me } = state;
-  const inHousehold = Boolean(me.householdId);
-  nav.hidden = !inHousehold;
-  who.replaceChildren(
-    el('span', {}, inHousehold ? `${me.householdName} · ${me.name}${me.role === 'admin' ? ' (admin)' : ''}` : me.name),
-    el('button', { class: 'secondary small', onclick: logOut }, 'Log out'),
-  );
-}
-
 function render() {
-  renderTopbar();
+  renderTopbar(state.me);
   syncControls();
   if (!state.me.householdId) {
     side.replaceChildren();
@@ -188,10 +177,6 @@ function showLoadError(err) {
     el('p', {}, err.message),
     el('button', { onclick: refresh }, 'Try again'),
   ));
-}
-
-async function logOut() {
-  try { await api('POST', '/logout'); } finally { location.href = '/login.html'; }
 }
 
 setupControls();

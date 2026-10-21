@@ -43,7 +43,8 @@ export function showFieldError(form, field, message) {
   let note = document.getElementById(id);
   if (!note) {
     note = el('small', { id, class: 'field-error' });
-    input.after(note);
+    // In a one-line form (input + button side by side), put it under the whole line.
+    (input.closest('.inline-form') ?? input).after(note);
   }
   note.textContent = message;
   input.setAttribute('aria-invalid', 'true');

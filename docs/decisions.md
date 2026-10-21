@@ -128,3 +128,12 @@ Full details are in the [design](superpowers/specs/2026-10-20-trashtalk-design.m
 - **A bug caught before it showed:** `replaceChildren(a, b, false)` would print the word "false" on the page for members (where the admin section is `false`). Fixed by filtering out empty sections.
 - **Style fixes:** the tag inside a doodle heading picked up the doodle font; admin dialog buttons were yellow because "submit buttons are yellow" won. Both fixed.
 - **Verified in a browser:** Assign next on Groceries suggested Alex (after Robin) on 1 Nov and created it; Reassign moved Mop kitchen from Nobody to Sam; New chore with an empty name showed the error in the dialog, then created "Water the plants"; Sam (member) saw none of the admin controls.
+
+### Task 12: Household page (#12)
+- **Two tabs, built the accessible way** (`role="tablist"`/`"tab"`/`"tabpanel"`, `aria-selected`, arrow keys move between tabs, only the selected tab is in the Tab order). *Why:* screen readers announce them as tabs, and the keyboard works like in desktop apps.
+- **The top bar moved into a shared file** (`public/js/topbar.js`), used by both pages, instead of a copy in each.
+- **"Leave" as the admin asks the server anyway** instead of hiding the button. *Why:* the rule lives in one place (the server), and the admin sees exactly why: "Make someone else admin first." Members get an "Are you sure?" first.
+- **Every destructive action asks first** (Remove, Make admin, Leave, Archive), with a sentence saying what will happen ("Their unfinished chores will need a new person.").
+- **Chores are edited in place** (the row turns into a small form), and archived chores are listed last, greyed out, with Restore.
+- **Errors in one-line forms appeared in the middle of the line.** *Problem:* the message was inserted right after the input, pushing the Add button onto its own line. *Decision:* in a one-line form, put the message under the whole line (change in `ui.js`, so all forms benefit).
+- **Verified in a browser:** unknown email → field error; `KIM@example.com` added Kim; admin Leave → "Make someone else admin first."; arrow key switched tabs; Archive (with confirm), Restore, and Edit with an empty name; Make Sam admin → Alex's admin controls disappeared; Alex then left → "not in a household yet", and his unfinished chores became Nobody.

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Household · Trash Talk</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗑️</text></svg>">
+  <link rel="stylesheet" href="/vendor/pico.min.css">
+  <link rel="stylesheet" href="/css/theme.css">
+  <script type="module" src="/js/household.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="logo" href="/">Trash Talk</a>
+    <nav id="nav" hidden aria-label="Main">
+      <a href="/">Chores</a>
+      <a href="/household.html" aria-current="page">Household</a>
+    </nav>
+    <div class="who" id="who"></div>
+  </header>
+
+  <main class="page household">
+    <h1 id="household-name">Household</h1>
+
+    <div class="tabs" role="tablist" aria-label="Household">
+      <button type="button" role="tab" id="tab-people" aria-controls="panel-people" aria-selected="true">People</button>
+      <button type="button" role="tab" id="tab-chores" aria-controls="panel-chores" aria-selected="false" tabindex="-1">Chore list</button>
+    </div>
+
+    <section id="panel-people" role="tabpanel" aria-labelledby="tab-people">
+      <p class="muted" aria-busy="true">Loading…</p>
+    </section>
+    <section id="panel-chores" role="tabpanel" aria-labelledby="tab-chores" hidden></section>
+  </main>
+
+  <div id="toasts" aria-live="polite"></div>
+</body>
+</html>
