@@ -435,7 +435,40 @@ The card's "current" turn is the **earliest unfinished** assignment of that chor
 
 ---
 
-## 12. Tests
+## 12. The swap flow in the browser + live updates (Task 9)
+
+**This is the demo.** Two browsers side by side (a normal window as Alex, a private window as Jamie):
+1. Alex clicks **Can't do it…** on his overdue Trash.
+2. A **dialog** opens: "Who could take it?", with each roommate and how many chores they have this week. Alex picks Jamie, types "Sorry, exam on Tuesday!", and clicks **Send request**.
+3. Alex's card now says **"Overdue · Waiting on Jamie"** and the Requests panel lists it. The chore is still Alex's.
+4. Within 10 seconds, **Jamie's** screen shows "Alex asks you to take Take out trash" with the message, plus **Take it** / **No**.
+5. Jamie clicks **Take it**. Within 10 seconds, Alex's card shows the chore as Jamie's.
+
+**The dialog** ([swap-dialog.js](../public/js/chores/swap-dialog.js)) is the browser's built-in `<dialog>` element. It's opened with `showModal()`: the rest of the page is dimmed, keyboard focus stays inside, and Esc closes it. The roommates are radio buttons. Choosing one updates the note to "It stays yours until Jamie says yes." If the server refuses, the error appears **inside** the dialog and it stays open.
+
+**The Requests panel** ([side-panel.js](../public/js/chores/side-panel.js)):
+- On wide screens it's a column on the right, with requests for you (Take it / No) and the ones you sent (Cancel).
+- On narrow screens (under 900px) the requests for you appear as a **banner** above the chores instead.
+- One CSS `@media` rule switches between the two.
+
+**Live updates: polling.** In [main.js](../public/js/chores/main.js), `setInterval(poll, 10000)` runs every 10 seconds:
+1. Fetch all the data again.
+2. Turn it into text (`JSON.stringify`) and compare it with last time.
+3. **Redraw only if something changed and no dialog is open** (`shouldRender`). Otherwise a half-typed message would be wiped out by the redraw.
+
+**When two people collide.** If Sam cancels a request at the moment Alex clicks Take it, the server answers 409 "This request is no longer available." (see §8). The page shows that message and redraws, so the stale request disappears.
+
+**Say this:** "The page polls every 10 seconds and only re-renders when the data changed and no dialog is open, so the two browsers stay in sync without losing what someone is typing. Collisions are decided on the server, and the loser just sees a clear message."
+
+**Likely questions**
+- *How does Jamie's page know about the request?* It asks the server again every 10 seconds. If the answer differs from last time, it redraws.
+- *Why not WebSockets?* Not allowed by the course's library rules, and polling is simple and fast enough for a household.
+- *What if Jamie is typing when an update arrives?* The page doesn't redraw while a dialog is open, and catches up on the next tick.
+- *Is the dialog accessible?* Yes. `<dialog>` with `showModal()` keeps focus inside, Esc closes it, the options are labelled radio buttons, and errors are announced.
+
+---
+
+## 13. Tests
 
 `npm test` runs the files in `tests/` using Node's built-in test runner. Each test starts the real app on a random port with an empty in-memory database, sends real requests, and checks the answers. For example, "registering `Alex@Example.com` after `alex@example.com` gives 409".
 
