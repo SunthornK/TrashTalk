@@ -18,7 +18,7 @@ export async function openSwapDialog(assignment, members, assignments, meId, sen
   const others = members.filter((m) => m.id !== meId);
   let chosen = null;
 
-  const note = el('p', { class: 'muted swap-note' }, 'It stays yours until they say yes.');
+  const note = el('p', { class: 'hint' }, 'It stays yours until they say yes.');
   const options = el('fieldset', { class: 'pick-list' },
     el('legend', { class: 'sr-only' }, 'Choose a roommate'),
     others.map((member) => {
@@ -32,7 +32,7 @@ export async function openSwapDialog(assignment, members, assignments, meId, sen
       });
       return el('label', { class: 'pick wobble', for: `pick-${member.id}` },
         radio, avatar(member.name), el('span', { class: 'pick-name' }, member.name),
-        el('span', { class: 'muted' }, `${count} ${count === 1 ? 'chore' : 'chores'} this week`),
+        el('span', { class: 'hint' }, `${count} ${count === 1 ? 'chore' : 'chores'} this week`),
       );
     }),
   );
@@ -41,7 +41,7 @@ export async function openSwapDialog(assignment, members, assignments, meId, sen
     title: 'Who could take it?',
     fields: [
       el('p', {}, el('strong', {}, assignment.choreTitle), ` · due ${formatShort(assignment.dueDate)}`),
-      others.length === 0 ? el('p', { class: 'muted' }, 'There is nobody else in your household yet.') : options,
+      others.length === 0 ? el('p', { class: 'hint' }, 'There is nobody else in your household yet.') : options,
       el('label', { for: 'swap-message' }, 'Message (optional)'),
       el('textarea', { id: 'swap-message', name: 'message', maxlength: '200', rows: '2', placeholder: 'Sorry, exam on Tuesday!' }),
       note,
@@ -49,7 +49,7 @@ export async function openSwapDialog(assignment, members, assignments, meId, sen
     submitLabel: 'Send request',
     onSubmit: async (form) => {
       if (!chosen) {
-        const error = new Error('Choose who you want to ask.');
+        const error = new Error('Please choose who to ask.');
         error.field = 'targetUserId';
         throw error;
       }

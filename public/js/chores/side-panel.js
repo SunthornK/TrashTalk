@@ -3,7 +3,7 @@
 import { el } from '../ui.js';
 import { formatShort, today, startOfWeek } from '../dates.js';
 import { weekProgress, applyFilter } from './filters.js';
-import { avatar } from './bits.js';
+import { avatar, statusTag } from './bits.js';
 
 function incomingRequest(swap, actions) {
   return el('div', { class: 'request' },
@@ -22,7 +22,7 @@ function incomingRequest(swap, actions) {
 
 function sentRequest(swap, actions) {
   return el('div', { class: 'request request--sent' },
-    el('p', {}, `You asked ${swap.targetName}: `, el('strong', {}, swap.choreTitle), ' · waiting'),
+    el('p', {}, `You asked ${swap.targetName} to take `, el('strong', {}, swap.choreTitle), ` (${formatShort(swap.dueDate)}).`),
     el('button', { class: 'link small', 'data-focus-key': `side-cancel-${swap.id}`, onclick: (e) => actions.cancelSwap(swap, e.currentTarget) }, 'Cancel'),
   );
 }
@@ -41,7 +41,7 @@ export function progressSection(state, idSuffix = '') {
         el('span', { class: 'bar-count' }, `${row.done} / ${row.total}`),
       );
     })),
-    el('p', { class: 'muted small-print' }, 'Done / assigned, due this week.'),
+    el('p', { class: 'hint' }, 'Done / assigned this week.'),
   );
 }
 
@@ -49,7 +49,7 @@ export function renderSidePanel(container, state, actions) {
   const { incoming, sent } = state.swaps;
   const requests = el('section', { class: 'panel-section', 'aria-labelledby': 'requests-title' },
     el('h2', { id: 'requests-title' }, 'Requests'),
-    incoming.length === 0 && sent.length === 0 && el('p', { class: 'muted' }, 'No requests right now.'),
+    incoming.length === 0 && sent.length === 0 && el('p', { class: 'hint' }, 'No requests right now.'),
     incoming.map((swap) => incomingRequest(swap, actions)),
     sent.map((swap) => sentRequest(swap, actions)),
   );
@@ -62,9 +62,9 @@ function needsSection(state, actions) {
   const needs = applyFilter(state.assignments, 'needs', state.me.id);
   return el('section', { class: 'panel-section', 'aria-labelledby': 'needs-title' },
     el('h2', { id: 'needs-title' }, 'Needs a new person ', el('span', { class: 'tag tag--over' }, String(needs.length))),
-    needs.length === 0 && el('p', { class: 'muted' }, 'Everything has someone. 👍'),
+    needs.length === 0 && el('p', { class: 'hint' }, 'Everything has someone.'),
     needs.map((a) => el('div', { class: 'request' },
-      el('p', {}, el('strong', {}, a.choreTitle), ` · ${a.userId === null ? 'nobody' : `${a.userName}, overdue`} · ${formatShort(a.dueDate)}`),
+      el('p', {}, el('strong', {}, a.choreTitle), ` · ${a.userName ?? 'Nobody'} · due ${formatShort(a.dueDate)}`, statusTag(a, state.me.id)),
       el('button', { class: 'admin small', 'data-focus-key': `side-reassign-${a.id}`, onclick: (e) => actions.reassign(a, e.currentTarget) }, 'Reassign…'),
     )),
   );

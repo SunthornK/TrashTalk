@@ -83,7 +83,7 @@ function renderPeople() {
       avatar(member.name),
       el('span', { class: 'person-name' },
         el('strong', {}, isMe ? `${member.name} (you)` : member.name),
-        el('span', { class: 'muted' }, member.email)),
+        el('span', { class: 'hint' }, member.email)),
       member.role === 'admin' && el('span', { class: 'tag tag--admin' }, 'Admin'),
       isAdmin && !isMe && el('span', { class: 'person-actions' },
         el('button', { class: 'admin small', onclick: (e) => makeAdmin(member, e.currentTarget) }, 'Make admin'),
@@ -104,8 +104,8 @@ function addMemberForm() {
   const submit = el('button', { type: 'submit', class: 'admin' }, 'Add');
   const form = el('form', { class: 'add-member', novalidate: true },
     el('label', { for: 'add-email' }, 'Add someone by email'),
-    el('p', { class: 'muted small-print' }, 'They need to create an account first.'),
     el('div', { class: 'inline-form' }, input, submit),
+    el('p', { class: 'hint' }, 'They need to create an account first.'),
   );
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -164,7 +164,7 @@ function renderChores() {
 
 function choreSummary(chore, isAdmin) {
   return [
-    el('span', { class: 'chore-row-name' }, el('strong', {}, chore.title), el('span', { class: 'muted' }, FREQUENCY_LABELS[chore.frequency])),
+    el('span', { class: 'chore-row-name' }, el('strong', {}, chore.title), el('span', { class: 'hint' }, FREQUENCY_LABELS[chore.frequency])),
     !chore.active && el('span', { class: 'tag' }, 'Archived'),
     isAdmin && el('span', { class: 'person-actions' },
       chore.active
@@ -173,7 +173,7 @@ function choreSummary(chore, isAdmin) {
           el('button', { class: 'danger small', onclick: (e) => archive(chore, e.currentTarget) }, 'Archive'),
         ]
         : el('button', { class: 'admin small', onclick: (e) =>
-          run(e.currentTarget, () => api('PATCH', `/chores/${chore.id}`, { active: true }), `"${chore.title}" is back.`) }, 'Restore'),
+          run(e.currentTarget, () => api('PATCH', `/chores/${chore.id}`, { active: true }), `“${chore.title}” is back.`) }, 'Restore'),
     ),
   ];
 }
@@ -203,8 +203,8 @@ function editForm(chore) {
 }
 
 async function archive(chore, button) {
-  const ok = await confirmDialog(`Archive "${chore.title}"? Unfinished assignments of this chore will be deleted. Finished ones stay in the history.`, 'Archive');
-  if (ok) await run(button, () => api('PATCH', `/chores/${chore.id}`, { active: false }), `"${chore.title}" was archived.`);
+  const ok = await confirmDialog(`Archive “${chore.title}”? Unfinished assignments of this chore will be deleted. Finished ones stay in the history.`, 'Archive');
+  if (ok) await run(button, () => api('PATCH', `/chores/${chore.id}`, { active: false }), `“${chore.title}” was archived.`);
 }
 
 load();

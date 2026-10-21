@@ -110,18 +110,18 @@ export function loadUser(db) {
 }
 
 export function requireUser(req, res, next) {
-  if (!req.user) throw new HttpError(401, 'Please log in');
+  if (!req.user) throw new HttpError(401, 'Please log in.');
   next();
 }
 
 export function requireHousehold(req, res, next) {
-  if (!req.user) throw new HttpError(401, 'Please log in');
+  if (!req.user) throw new HttpError(401, 'Please log in.');
   if (!req.user.householdId) throw new HttpError(403, 'Join a household first');
   next();
 }
 
 export function requireAdmin(req, res, next) {
-  if (!req.user) throw new HttpError(401, 'Please log in');
+  if (!req.user) throw new HttpError(401, 'Please log in.');
   if (!req.user.householdId) throw new HttpError(403, 'Join a household first');
   if (req.user.role !== 'admin') throw new HttpError(403, "You don't have permission to do that.");
   next();

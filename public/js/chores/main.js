@@ -37,7 +37,7 @@ async function run(button, request, successMessage) {
 
 const actions = {
   complete: (assignment, button) =>
-    run(button, () => api('POST', `/assignments/${assignment.id}/complete`), `Nice! "${assignment.choreTitle}" is done.`),
+    run(button, () => api('POST', `/assignments/${assignment.id}/complete`), `Nice! “${assignment.choreTitle}” is done.`),
 
   openSwap: async (assignment) => {
     const target = await openSwapDialog(assignment, state.household.members, state.assignments, state.me.id,
@@ -50,7 +50,7 @@ const actions = {
     run(button, () => api('POST', `/swaps/${swap.id}/cancel`), 'Request cancelled.'),
 
   accept: (swap, button) =>
-    run(button, () => api('POST', `/swaps/${swap.id}/accept`), `"${swap.choreTitle}" is yours now. Thanks!`),
+    run(button, () => api('POST', `/swaps/${swap.id}/accept`), `“${swap.choreTitle}” is yours now. Thanks!`),
 
   reject: (swap, button) =>
     run(button, () => api('POST', `/swaps/${swap.id}/reject`), `You said no to ${swap.requesterName}.`),
@@ -63,7 +63,7 @@ const actions = {
       await api('POST', '/assignments', { choreId: chore.id, ...values });
       name = members.find((m) => m.id === values.userId)?.name;
     });
-    if (ok) toast(`"${chore.title}" assigned to ${name}.`);
+    if (ok) toast(`“${chore.title}” assigned to ${name}.`);
     await refresh();
   },
 
@@ -74,7 +74,7 @@ const actions = {
       await api('PATCH', `/assignments/${assignment.id}`, values);
       name = members.find((m) => m.id === values.userId)?.name;
     });
-    if (ok) toast(`"${assignment.choreTitle}" now belongs to ${name}.`);
+    if (ok) toast(`“${assignment.choreTitle}” now belongs to ${name}.`);
     await refresh();
   },
 
@@ -84,7 +84,7 @@ const actions = {
       const chore = await api('POST', '/chores', values);
       title = chore.title;
     });
-    if (ok) toast(`Added "${title}". Use "+ Assign next" to give it to someone.`);
+    if (ok) toast(`Added “${title}”. Use “+ Assign next” to give it to someone.`);
     await refresh();
   },
 };

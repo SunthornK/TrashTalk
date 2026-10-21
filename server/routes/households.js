@@ -71,7 +71,7 @@ export function householdRoutes(db) {
     const email = String(req.body?.email ?? '').trim().toLowerCase();
     const user = db.prepare('SELECT id, name, email, household_id FROM users WHERE email = ?').get(email);
     if (!user) {
-      throw new HttpError(404, 'No account with that email. Ask them to register first.', 'email');
+      throw new HttpError(404, 'No account with that email. Ask them to create an account first.', 'email');
     }
     if (user.household_id) {
       throw new HttpError(409, 'That person is already in a household.', 'email');

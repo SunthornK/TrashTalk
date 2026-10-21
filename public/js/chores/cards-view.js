@@ -21,7 +21,7 @@ export function renderCards(container, state, actions) {
 
   const cards = sortCards(filterCards(allCards, state.filter, me.id), state.sort);
   if (cards.length === 0) {
-    container.replaceChildren(el('p', { class: 'empty' }, 'Nothing for you right now 🎉'));
+    container.replaceChildren(el('p', { class: 'empty' }, 'Nothing matches this filter.'));
     return;
   }
 
@@ -39,8 +39,8 @@ function choreCard({ chore, current, upcoming }, me, actions) {
       el('h3', {}, chore.title),
       current && statusTag(current, me.id),
     ),
-    current ? whenLine(current, me) : el('p', { class: 'muted' }, 'Nobody is assigned yet.'),
-    upcoming.length > 0 && el('p', { class: 'next muted' }, `then ${upcoming.map((a) => whoLabel(a, me.id)).join(', ')}`),
+    current ? whenLine(current, me) : el('p', { class: 'now muted' }, 'Nobody is assigned yet.'),
+    upcoming.length > 0 && el('p', { class: 'hint' }, `Next: ${upcoming.map((a) => whoLabel(a, me.id)).join(', ')}`),
     el('div', { class: 'actions' },
       assignmentButtons(current, me, actions),
       adminButtons(current, chore, me, actions),

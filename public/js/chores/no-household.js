@@ -5,7 +5,7 @@ import { el, clearFormErrors, handleError, withBusy } from '../ui.js';
 
 export function renderNoHousehold(container, me, onJoined) {
   const input = el('input', { id: 'household-name', name: 'name', placeholder: 'e.g. Flat 4B', autocomplete: 'off' });
-  const submit = el('button', { type: 'submit' }, 'Create & become admin');
+  const submit = el('button', { type: 'submit' }, 'Create household');
   const form = el('form', { novalidate: true },
     el('label', { for: 'household-name' }, 'Start a new household'),
     input,

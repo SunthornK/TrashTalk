@@ -3,7 +3,7 @@
 // server refuses, the error shows inside the dialog and it stays open.
 import { el, openFormDialog } from '../ui.js';
 import { formatShort } from '../dates.js';
-import { FREQUENCY_LABELS } from './bits.js';
+import { FREQUENCY_LABELS, avatar } from './bits.js';
 
 function memberSelect(id, members, selectedId) {
   return el('select', { id, name: 'userId' },
@@ -12,13 +12,13 @@ function memberSelect(id, members, selectedId) {
 
 export function openAssignDialog(chore, members, suggestion, send) {
   return openFormDialog({
-    title: `Assign "${chore.title}"`,
+    title: `Assign “${chore.title}”`,
     fields: [
       el('label', { for: 'assign-user' }, 'To'),
       memberSelect('assign-user', members, suggestion.userId),
       el('label', { for: 'assign-due' }, 'Due'),
       el('input', { id: 'assign-due', name: 'dueDate', type: 'date', value: suggestion.dueDate, required: true }),
-      el('p', { class: 'muted small-print' }, `Filled in for you: next in line, ${FREQUENCY_LABELS[chore.frequency].toLowerCase()} after the last one.`),
+      el('p', { class: 'hint' }, 'Suggested: the next person in line and the next due date.'),
     ],
     submitLabel: 'Assign',
     submitClass: 'admin',
@@ -29,12 +29,12 @@ export function openAssignDialog(chore, members, suggestion, send) {
 export function openReassignDialog(assignment, members, send) {
   const firstOther = members.find((m) => m.id !== assignment.userId) ?? members[0];
   return openFormDialog({
-    title: `Reassign "${assignment.choreTitle}"`,
+    title: `Reassign “${assignment.choreTitle}”`,
     fields: [
-      el('p', {}, `Due ${formatShort(assignment.dueDate)} · now: `, el('strong', {}, assignment.userName ?? 'Nobody')),
+      el('p', { class: 'now' }, avatar(assignment.userName), el('strong', {}, assignment.userName ?? 'Nobody'), ` · due ${formatShort(assignment.dueDate)}`),
       el('label', { for: 'reassign-user' }, 'Give it to'),
       memberSelect('reassign-user', members, firstOther?.id),
-      assignment.pendingSwap && el('p', { class: 'muted small-print' }, `The pending request to ${assignment.pendingSwap.targetName} will be cancelled.`),
+      assignment.pendingSwap && el('p', { class: 'hint' }, `The pending request to ${assignment.pendingSwap.targetName} will be cancelled.`),
     ],
     submitLabel: 'Reassign',
     submitClass: 'admin',

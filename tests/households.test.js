@@ -61,7 +61,7 @@ test('unknown email → 404 field email', async () => {
   const res = await admin.req('POST', '/api/household/members', { email: 'nobody@example.com' });
   assert.equal(res.status, 404);
   assert.equal(res.body.field, 'email');
-  assert.equal(res.body.error, 'No account with that email. Ask them to register first.');
+  assert.equal(res.body.error, 'No account with that email. Ask them to create an account first.');
 });
 
 test('already-in-household → 409', async () => {

@@ -86,11 +86,11 @@ function openDetails(assignment, state, actions) {
       avatar(assignment.userId === null ? null : assignment.userName), ' ',
       el('strong', {}, whoLabel(assignment, state.me.id)),
       ` · due ${formatShort(assignment.dueDate)}`),
-    notes.map((note) => el('p', { class: 'muted' }, note)),
+    notes.map((note) => el('p', { class: 'hint' }, note)),
     el('footer', {},
+      el('button', { type: 'button', class: 'secondary', onclick: () => dialog.close() }, 'Close'),
       assignmentButtons(assignment, state.me, closingActions),
       adminButtons(assignment, null, state.me, closingActions),
-      el('button', { type: 'button', class: 'secondary', onclick: () => dialog.close() }, 'Close'),
     ),
   ));
   dialog.addEventListener('close', () => dialog.remove());
