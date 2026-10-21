@@ -559,7 +559,26 @@ The admin uses the **same Chores page** as everyone, plus a few **purple** butto
 
 ---
 
-## 16. Tests
+## 16. Styling: how the CSS is organised
+
+- **Pico.css** gives the base: readable forms, focus handling, responsive spacing. It's a CSS-only framework, which the course allows.
+- **[public/css/theme.css](../public/css/theme.css)** adds the doodle look on top: wobbly `border-radius`, hard `box-shadow`s, and the Gloria Hallelujah font for headings only.
+- **One design system, defined as CSS custom properties at the top of the file:**
+  - **6 font sizes** (`--fs-xs` … `--fs-2xl`) and **2 weights** (400, 600),
+  - **spacing steps** (`--sp-1` … `--sp-6`),
+  - **colours** (`--ink`, `--yellow`, `--orange` for overdue, `--blue` for waiting, `--green` for done, `--purple` for admin).
+- **Every kind of text uses one of those sizes.** All secondary text (hints, emails, "Next: Sam") shares one class, `.hint`.
+- **Buttons come in two sizes:** normal and `.small`. Their colours go through three variables (`--btn-bg`, `--btn-fg`, `--btn-line`), so hover and focus can't recolour them by accident.
+- **Status is never colour alone.** Every tag and chip also says it in words.
+- **Responsive:** a few `@media` rules.
+  - At ≥ 900px the side panel appears, and the Chores page fills the window (each column scrolls on its own).
+  - Below that, requests become a banner and the progress bars move above the chores.
+
+**Say this:** "We use Pico as a base and one theme file with a small design system in CSS variables: a fixed type scale, spacing steps and colour tokens, so every screen uses the same sizes and styles."
+
+---
+
+## 17. Tests
 
 `npm test` runs the files in `tests/` using Node's built-in test runner. Each test starts the real app on a random port with an empty in-memory database, sends real requests, and checks the answers. For example, "registering `Alex@Example.com` after `alex@example.com` gives 409".
 
