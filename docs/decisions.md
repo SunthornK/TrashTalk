@@ -144,3 +144,13 @@ Full details are in the [design](superpowers/specs/2026-10-20-trashtalk-design.m
 - **With the server down, a failed click replaced the whole page with an error.** *Decision:* if the page already shows data, keep it and just show "Something went wrong, try again"; the full-page error with "Try again" is only for the very first load. Verified by stopping the server and clicking Done ✓.
 - **Checked:** no sideways scrolling on any page at 360, 768 and 1280 px; the side panel only on wide screens; Tab order follows the page (logo → nav → controls → cards); every input has a label.
 - **README** rewritten: setup, demo logins, features, technical description, and a table of where each course requirement is met.
+
+### Final review (fresh reviewer, whole codebase)
+The reviewer found **no critical problems**, and confirmed the household scoping, the atomic accept, no XSS or SQL injection, and all five "tricky inputs" from the plan. Fixed, each with a test that failed first:
+- **Week chips showed status by colour only** (e.g. "Overdue" vs "To do" was just orange vs white), which broke our own accessibility rule. Every chip now says its status in words under the name (`chipNote`: "Overdue", "Waiting on Sam", "Done · was overdue", "Done · via Jamie").
+- **A broken cookie from any other app on localhost** made every request (even login) fail with a 500, because browsers share localhost cookies across ports. Cookies that can't be decoded are now kept as they are instead of crashing.
+- **On presentation day (Friday) the demo data spilled into next week**, so the "Nobody" chore and others vanished from the week chart. Demo chores due "in a few days" are now capped at this Sunday. Tested for Monday, Wednesday, Friday and Sunday.
+- **Impossible dates like 31 February were accepted** through the API (JavaScript quietly turns them into 3 March), and such a chore crashed that week's chart. Dates are now rebuilt and must come back unchanged.
+- **The whole chores area was a "live region"**, so a screen reader would re-read the entire page after every update. Only the toasts are announced now.
+
+Not fixed now (small, listed so we know): impossible API values like `active: "false"` or non-text names are coerced instead of refused; login time differs slightly for unknown emails; logout can be triggered by another site (harmless); a very rare stale redraw that fixes itself within 10 s; the "Choose who you want to ask" message sits inside the option when there's only one roommate; expired sessions are never deleted; "via Jamie" stays after a later reassign.

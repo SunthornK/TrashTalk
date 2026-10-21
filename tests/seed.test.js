@@ -51,3 +51,24 @@ test('seeding twice starts from scratch', async () => {
     await server.close();
   }
 });
+
+// The demo week must have its key states on any day, especially Friday
+// (presentation day) and Sunday, when "today + n" would spill into next week.
+for (const day of ['2026-10-19', '2026-10-21', '2026-10-23', '2026-10-25']) {
+  test(`seed keeps the demo states inside the current week (today = ${day})`, async () => {
+    const server = await startServer();
+    try {
+      seed(server.db, day);
+      const flat = server.db.prepare("SELECT id FROM households WHERE name = 'Flat 4B'").get();
+      const monday = startOfWeek(day);
+      const week = assignmentsQuery(server.db, flat.id, { from: monday, to: addDays(monday, 6) });
+      assert.ok(week.some((a) => a.userId === null && a.status === 'assigned'), 'a Nobody chore this week');
+      assert.equal(week.filter((a) => a.pendingSwap !== null).length, 2, 'two pending requests this week');
+      assert.ok(week.some((a) => a.userName === 'Robin' && a.status === 'assigned'), "Robin's chore this week");
+      const all = assignmentsQuery(server.db, flat.id);
+      assert.ok(all.some((a) => a.userName === 'Alex' && a.status === 'assigned' && a.dueDate < day), 'Alex has something overdue');
+    } finally {
+      await server.close();
+    }
+  });
+}

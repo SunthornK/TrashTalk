@@ -1,6 +1,7 @@
 // Small input checks shared by several routes. Each throws a 400 HttpError
 // naming the field, so the browser can show the message next to the input.
 import { HttpError } from './errors.js';
+import { addDays } from '../public/js/dates.js';
 
 export const FREQUENCIES = ['daily', 'weekly', 'monthly', 'once'];
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
@@ -20,7 +21,8 @@ export function requireFrequency(value) {
 }
 
 export function requireDate(value, field) {
-  if (!DATE_PATTERN.test(String(value ?? '')) || Number.isNaN(new Date(value).getTime())) {
+  // addDays(value, 0) rebuilds the date; '2026-02-31' comes back as '2026-03-03', so it's not a real date.
+  if (!DATE_PATTERN.test(String(value ?? '')) || addDays(value, 0) !== value) {
     throw new HttpError(400, 'Please choose a valid date.', field);
   }
   return value;

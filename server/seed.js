@@ -17,6 +17,10 @@ export function seed(db, todayString) {
   const lastWeek = addDays(monday, -7);
   const twoWeeksAgo = addDays(monday, -14);
   const nextWeek = addDays(monday, 7);
+  const sunday = addDays(monday, 6);
+  // "today + n", but never past this Sunday, so the demo week always shows
+  // its pending requests and the Nobody chore (even on a Friday or Sunday).
+  const soon = (n) => { const d = addDays(todayString, n); return d > sunday ? sunday : d; };
   const now = new Date().toISOString();
 
   // Finished at noon local time on the given day.
@@ -87,13 +91,13 @@ export function seed(db, todayString) {
 
     // This week.
     open(trash, alex, addDays(todayString, -1)); // overdue
-    const vacuumNow = open(vacuum, jamie, addDays(todayString, 1));
+    const vacuumNow = open(vacuum, jamie, soon(1));
     addSwap.run(vacuumNow, jamie, alex, 'Exam on Thursday, could you take this one?', 'pending', now, null);
-    const bathroomNow = open(bathroom, alex, addDays(todayString, 2));
+    const bathroomNow = open(bathroom, alex, soon(2));
     addSwap.run(bathroomNow, alex, sam, null, 'pending', now, null);
     done(dishes, sam, todayString);
-    open(mop, null, addDays(todayString, 3)); // Nobody: Kim moved out
-    open(groceries, robin, addDays(todayString, 4));
+    open(mop, null, soon(3)); // Nobody: Kim moved out
+    open(groceries, robin, soon(4));
 
     // Next week.
     open(trash, sam, addDays(nextWeek, 1));

@@ -97,3 +97,18 @@ test('session cookie is HttpOnly and SameSite=Lax', async () => {
   assert.match(cookie, /HttpOnly/i);
   assert.match(cookie, /SameSite=Lax/i);
 });
+
+test('a malformed cookie from another app does not break the API', async () => {
+  const bad = await fetch(server.base + '/api/me', { headers: { cookie: 'other=%E0%A4%A' } });
+  assert.equal(bad.status, 401);
+
+  const c = client(server.base);
+  await c.req('POST', '/api/register', alex);
+  const res = await fetch(server.base + '/api/register', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ ...alex, email: 'alex2@example.com' }),
+  });
+  const sid = res.headers.get('set-cookie').split(';')[0];
+  const withBoth = await fetch(server.base + '/api/me', { headers: { cookie: `other=%E0%A4%A; ${sid}` } });
+  assert.equal(withBoth.status, 200);
+});

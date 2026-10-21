@@ -33,7 +33,13 @@ export function parseCookies(header) {
     const index = part.indexOf('=');
     if (index === -1) continue;
     const name = part.slice(0, index).trim();
-    cookies[name] = decodeURIComponent(part.slice(index + 1).trim());
+    const value = part.slice(index + 1).trim();
+    // Other apps on localhost share our cookies; a broken one must not crash us.
+    try {
+      cookies[name] = decodeURIComponent(value);
+    } catch {
+      cookies[name] = value;
+    }
   }
   return cookies;
 }

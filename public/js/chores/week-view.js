@@ -3,7 +3,7 @@
 import { el } from '../ui.js';
 import { addDays, formatShort, today, weekLabel, localDate } from '../dates.js';
 import { applyFilter, weekRows } from './filters.js';
-import { displayStatus } from './status.js';
+import { displayStatus, chipNote } from './status.js';
 import { avatar, statusTag, whoLabel, assignmentButtons, adminButtons } from './bits.js';
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -50,23 +50,20 @@ function rowName(row, me) {
   return row.isMe ? me.name : row.label.replace(' (left)', '');
 }
 
-// One chore in a day cell. The colour comes from the status; the text says
-// it too (✓ for done, plus "late" or "via Jamie" in past weeks).
+// One chore in a day cell. The colour comes from the status, and the small
+// text under the name says it in words too ("Overdue", "Done · was overdue").
 function chip(assignment, state, actions) {
-  const { kind, label } = displayStatus(assignment, state.me.id);
-  const extra = [
-    assignment.wasLate && 'late',
-    assignment.viaName && `via ${assignment.viaName}`,
-  ].filter(Boolean).join(', ');
+  const { kind } = displayStatus(assignment, state.me.id);
+  const note = chipNote(assignment, state.me.id);
   return el('button', {
     type: 'button',
     class: `chip chip--${kind}`,
     'data-focus-key': `chip-${assignment.id}`,
-    'aria-label': `${assignment.choreTitle}: ${whoLabel(assignment, state.me.id)}, ${label}${extra ? `, ${extra}` : ''}. Due ${formatShort(assignment.dueDate)}.`,
+    'aria-label': `${assignment.choreTitle}: ${whoLabel(assignment, state.me.id)}, ${note}. Due ${formatShort(assignment.dueDate)}.`,
     onclick: () => openDetails(assignment, state, actions),
   },
   el('span', { class: 'chip-title' }, `${assignment.status === 'completed' ? '✓ ' : ''}${assignment.choreTitle}`),
-  extra && el('small', {}, extra));
+  el('small', {}, note));
 }
 
 // Clicking a chip: the details, with the same buttons a card has.

@@ -197,3 +197,12 @@ test("another household's assignment is 404", async () => {
   assert.equal((await other.admin.req('PATCH', `/api/chores/${chore.id}`, { active: false })).status, 404);
   assert.deepEqual(await list(other.admin), []);
 });
+
+test('impossible dates are refused', async () => {
+  const { admin, chore, users } = await setup();
+  const res = await admin.req('POST', '/api/assignments', { choreId: chore.id, userId: users[0].id, dueDate: '2026-02-31' });
+  assert.equal(res.status, 400);
+  assert.equal(res.body.field, 'dueDate');
+  const range = await admin.req('GET', '/api/assignments?from=2026-02-30&to=2026-03-06');
+  assert.equal(range.status, 400);
+});
