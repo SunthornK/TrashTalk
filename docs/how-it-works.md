@@ -388,7 +388,54 @@ b.append('Save');
 
 ---
 
-## 11. Tests
+## 11. The Chores page: state → render (Task 8)
+
+Files in [public/js/chores/](../public/js/chores/):
+
+| File | Job |
+|---|---|
+| `state.js` | the `state` object (me, household, assignments, swaps, chosen view/filter/sort) and `loadAll()` |
+| `main.js` | starts the page, holds the **actions** (what buttons do), calls `render()` |
+| `cards-view.js` | draws one card per chore |
+| `status.js`, `filters.js` | pure logic: which status text, which cards, in what order (tested) |
+| `bits.js` | small shared pieces: avatar circle, status tag, "You"/"Nobody" label |
+| `no-household.js` | the "You're not in a household yet" screen |
+
+**The pattern: state → render.**
+1. `loadAll()` fetches `/me`, then `/household`, `/assignments` and `/swaps` **at the same time** (`Promise.all`), and stores the answers in `state`.
+2. `render()` reads `state` and **rebuilds** the cards with `el(...)` and `container.replaceChildren(...)`.
+3. When you click a button, its **action** sends the request, shows a notice, then calls `refresh()` = `loadAll()` + `render()` again.
+
+So the screen is always a fresh drawing of the latest data from the database. Nothing is patched by hand, so nothing can get out of sync.
+
+**Dynamic DOM.** Cards are *created* in JavaScript (`el('article', …)`), *changed* (status tag, highlight for your own cards), and *removed* (`replaceChildren` throws away the old cards on every render). That covers the course's "create, modify and remove DOM elements" requirement.
+
+**A chore card shows:**
+- the title and a **status tag** (always text, e.g. "Overdue", "Waiting on Sam"; the colour is extra),
+- who has the current turn and when it's due: "You · due Tue 20 Oct",
+- who's next: "then Sam, Jamie",
+- buttons, but only the ones *you* may use. Done ✓ appears only on your own unfinished chore.
+
+The card's "current" turn is the **earliest unfinished** assignment of that chore (or the last finished one if all are done). That's why, after Done ✓, the Trash card moves on to Sam's next turn.
+
+**Loading, empty and error states.**
+- "Loading…" is shown until the first data arrives.
+- "No chores yet" appears, with different advice for the admin and for members.
+- "Nothing for you right now 🎉" appears when a filter matches nothing.
+- If loading fails, the error is shown with a **Try again** button.
+
+**Not in a household yet.** Kim sees a message with her email and a form to start her own household. Every 10 seconds the page asks `/api/me` again. As soon as an admin adds her, it switches to the chores by itself.
+
+**Say this:** "The page keeps all data in one state object. After every action it reloads from the server and re-renders, so the interface always matches the database. Cards are created, updated and removed with DOM methods. The rules for what to show are pure functions with their own tests."
+
+**Likely questions**
+- *How does the page update without reloading?* The button's action sends a `fetch`, then we fetch fresh data and redraw just the cards.
+- *Why reload all data instead of changing one card?* It's simpler and always correct. Other people's changes show up too.
+- *Why does the Done button only appear on some cards?* The page only shows buttons you're allowed to use. The server checks again anyway (403 otherwise).
+
+---
+
+## 12. Tests
 
 `npm test` runs the files in `tests/` using Node's built-in test runner. Each test starts the real app on a random port with an empty in-memory database, sends real requests, and checks the answers. For example, "registering `Alex@Example.com` after `alex@example.com` gives 409".
 
