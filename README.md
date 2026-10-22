@@ -4,7 +4,7 @@ A web app for roommates to share household chores. Everyone can see who has whic
 
 Web Development course project by Sunthorn Kompita and Teerapat Trepopsakulsin.
 
-> **Branch `minimal`:** a reduced version with only what the course brief asks for, styled with plain Pico.css. The full version (week view, side panel, history, doodle style) is on `main`.
+> **Branch `minimal`:** a reduced version with only what the course brief asks for, styled with plain Pico.css. The full version (week view, side panel, history, doodle style) is on `main`. Explained in [docs/minimal-version.md](docs/minimal-version.md).
 
 ## Setup
 
