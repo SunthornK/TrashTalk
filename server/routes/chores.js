@@ -5,11 +5,19 @@ import { requireAdmin } from '../auth.js';
 import { requireText, requireFrequency } from '../validate.js';
 
 function toChore(row) {
-  return { id: row.id, title: row.title, frequency: row.frequency, active: row.active === 1 };
+  return { id: row.id, title: row.title, frequency: row.frequency };
 }
 
 export function choreRoutes(db) {
   const router = Router();
+
+  // A chore of *my* household from the :id in the URL; anything else is 404.
+  function choreFromParams(req) {
+    const chore = db.prepare('SELECT * FROM chores WHERE id = ? AND household_id = ?')
+      .get(Number(req.params.id), req.user.householdId);
+    if (!chore) throw new HttpError(404, 'Not found');
+    return chore;
+  }
 
   router.post('/chores', requireAdmin, (req, res) => {
     const title = requireText(req.body?.title, 'title', 'a chore name', 60);
@@ -20,29 +28,25 @@ export function choreRoutes(db) {
     res.status(201).json(toChore(db.prepare('SELECT * FROM chores WHERE id = ?').get(lastInsertRowid)));
   });
 
-  // Edit the title or frequency, archive (active: false) or restore (active: true).
+  // Edit the name and how often.
   router.patch('/chores/:id', requireAdmin, (req, res) => {
-    const chore = db.prepare('SELECT * FROM chores WHERE id = ? AND household_id = ?')
-      .get(Number(req.params.id), req.user.householdId);
-    if (!chore) throw new HttpError(404, 'Not found');
-
-    const body = req.body ?? {};
-    const title = body.title === undefined ? chore.title : requireText(body.title, 'title', 'a chore name', 60);
-    const frequency = body.frequency === undefined ? chore.frequency : requireFrequency(body.frequency);
-    const active = body.active === undefined ? chore.active === 1 : Boolean(body.active);
-
-    transaction(db, () => {
-      if (chore.active === 1 && !active) {
-        // Archiving removes the chore's unfinished assignments (and their
-        // swap requests, which point at them). Completed ones stay as history.
-        const openIds = `SELECT id FROM assignments WHERE chore_id = ? AND status = 'assigned'`;
-        db.prepare(`DELETE FROM swap_requests WHERE assignment_id IN (${openIds})`).run(chore.id);
-        db.prepare(`DELETE FROM assignments WHERE id IN (${openIds})`).run(chore.id);
-      }
-      db.prepare('UPDATE chores SET title = ?, frequency = ?, active = ? WHERE id = ?')
-        .run(title, frequency, active ? 1 : 0, chore.id);
-    });
+    const chore = choreFromParams(req);
+    const title = requireText(req.body?.title, 'title', 'a chore name', 60);
+    const frequency = requireFrequency(req.body?.frequency);
+    db.prepare('UPDATE chores SET title = ?, frequency = ? WHERE id = ?').run(title, frequency, chore.id);
     res.json(toChore(db.prepare('SELECT * FROM chores WHERE id = ?').get(chore.id)));
+  });
+
+  // Delete a chore with all its turns. Swap requests point at the turns, so
+  // they go first; all three deletes happen together or not at all.
+  router.delete('/chores/:id', requireAdmin, (req, res) => {
+    const chore = choreFromParams(req);
+    transaction(db, () => {
+      db.prepare('DELETE FROM swap_requests WHERE assignment_id IN (SELECT id FROM assignments WHERE chore_id = ?)').run(chore.id);
+      db.prepare('DELETE FROM assignments WHERE chore_id = ?').run(chore.id);
+      db.prepare('DELETE FROM chores WHERE id = ?').run(chore.id);
+    });
+    res.status(204).end();
   });
 
   return router;

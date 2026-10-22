@@ -4,9 +4,9 @@ import { displayStatus } from '../public/js/chores/status.js';
 
 const ME = 1;
 const base = {
-  id: 10, choreId: 1, choreTitle: 'Trash', userId: 2, userName: 'Sam', userLeft: false,
+  id: 10, choreId: 1, choreTitle: 'Trash', userId: 2, userName: 'Sam',
   dueDate: '2026-10-22', status: 'assigned', completedAt: null,
-  overdue: false, wasLate: false, pendingSwap: null, viaName: null,
+  overdue: false, pendingSwap: null,
 };
 
 test('To do', () => {
@@ -39,16 +39,4 @@ test('Nobody', () => {
 test('Done', () => {
   const a = { ...base, status: 'completed', completedAt: '2026-10-22T10:00:00Z' };
   assert.deepEqual(displayStatus(a, ME), { label: 'Done', kind: 'done' });
-});
-
-test('chipNote: every week chip states its status in words', async () => {
-  const { chipNote } = await import('../public/js/chores/status.js');
-  assert.equal(chipNote(base, ME), 'To do');
-  assert.equal(chipNote({ ...base, overdue: true }, ME), 'Overdue');
-  assert.equal(chipNote({ ...base, pendingSwap: { id: 5, targetUserId: 3, targetName: 'Jamie' } }, ME), 'Waiting on Jamie');
-  assert.equal(chipNote({ ...base, userId: null, userName: null }, ME), 'Nobody');
-  const done = { ...base, status: 'completed', completedAt: '2026-10-22T10:00:00Z' };
-  assert.equal(chipNote(done, ME), 'Done');
-  assert.equal(chipNote({ ...done, wasLate: true }, ME), 'Done · was overdue');
-  assert.equal(chipNote({ ...done, viaName: 'Jamie' }, ME), 'Done · via Jamie');
 });

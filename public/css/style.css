@@ -1,0 +1,78 @@
+/* Pico.css does most of the styling. This file only adds the layout and
+   the few things Pico doesn't have. */
+
+/* Top bar: logo, links and "Flat 4B · Alex (admin) · Log out" on one line. */
+.topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  padding-block: 1rem;
+}
+.topbar .logo { font-weight: 700; font-size: 1.25rem; text-decoration: none; }
+.topbar nav { display: flex; gap: 1rem; }
+.topbar .who { margin-left: auto; display: flex; align-items: center; gap: 0.75rem; }
+
+/* Show / Sort dropdowns side by side. */
+.controls { display: flex; flex-wrap: wrap; gap: 1rem; }
+.controls select { width: auto; }
+
+/* The chore cards: as many columns as fit. */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+.cards article { margin: 0; }
+
+/* A row of buttons on a card or a request. */
+.actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.actions button, .topbar button, .people button {
+  width: auto;
+  margin: 0;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+/* Dialogs: Cancel and the main button side by side, on the right. */
+dialog footer { display: flex; justify-content: flex-end; gap: 0.5rem; }
+dialog footer button, dialog footer [type='submit'] { width: auto; margin: 0; }
+
+/* Status tags. The words say the status; the colour is extra. */
+.tag {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border: 1px solid #999;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+.tag--over { background: #ffd2c8; border-color: #c0392b; }
+.tag--pend { background: #d6ecff; border-color: #2c7be5; }
+.tag--done { background: #d8f5d0; border-color: #2e8b3d; }
+.tag--none { border-style: dashed; }
+
+.hint { color: #666; font-size: 0.875rem; }
+
+/* Household page: one person per line. */
+.people { list-style: none; padding: 0; }
+.people li { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; min-height: 2.75rem; }
+
+/* Login page: "New here? Create an account" looks like a link. */
+button.link {
+  width: auto;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--pico-primary);
+  text-decoration: underline;
+}
+
+/* Form errors. */
+.field-error { display: block; color: #b00020; margin-top: -0.5rem; margin-bottom: 1rem; }
+.form-error { color: #b00020; font-weight: 600; }
+
+/* Messages in the bottom corner. */
+#toasts { position: fixed; right: 1rem; bottom: 1rem; display: grid; gap: 0.5rem; z-index: 10; }
+.toast { padding: 0.75rem 1rem; border-radius: 6px; background: #1f2937; color: #fff; }
+.toast--error { background: #b00020; }

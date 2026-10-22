@@ -20,15 +20,15 @@ async function setup() {
   return { ...house, chore, assign };
 }
 
-async function list(c, query = '') {
-  return (await c.req('GET', `/api/assignments${query}`)).body;
+async function list(c) {
+  return (await c.req('GET', '/api/assignments')).body;
 }
 
 test('admin creates a chore; bad input is a field error', async () => {
   const { admin } = await makeHousehold(server.base, ['Alex']);
   const ok = await admin.req('POST', '/api/chores', { title: 'Mop kitchen', frequency: 'weekly' });
   assert.equal(ok.status, 201);
-  assert.deepEqual(ok.body, { id: ok.body.id, title: 'Mop kitchen', frequency: 'weekly', active: true });
+  assert.deepEqual(ok.body, { id: ok.body.id, title: 'Mop kitchen', frequency: 'weekly' });
 
   const noTitle = await admin.req('POST', '/api/chores', { title: '', frequency: 'weekly' });
   assert.equal(noTitle.status, 400);
@@ -53,40 +53,10 @@ test('assignment view has names and status fields', async () => {
   assert.equal(a.choreTitle, 'Take out trash');
   assert.equal(a.userName, 'Sam');
   assert.equal(a.status, 'assigned');
-  assert.equal(a.userLeft, false);
   assert.equal(a.pendingSwap, null);
-  assert.equal(a.viaName, null);
-  assert.equal(a.wasLate, false);
 });
 
-test('completed late shows wasLate', async () => {
-  const { members, assign, admin } = await setup();
-  const a = await assign(1, addDays(today(), -2));
-  const done = await members[0].req('POST', `/api/assignments/${a.id}/complete`);
-  assert.equal(done.status, 200);
-  assert.equal(done.body.status, 'completed');
-  assert.equal(done.body.wasLate, true);
-  assert.equal(done.body.overdue, false);
-  const onTime = await assign(1, today());
-  const done2 = await members[0].req('POST', `/api/assignments/${onTime.id}/complete`);
-  assert.equal(done2.body.wasLate, false);
-  assert.ok((await list(admin)).length >= 1);
-});
-
-test('range filter returns only assignments in [from, to]', async () => {
-  const { admin, assign } = await setup();
-  await assign(0, '2026-10-18');
-  const inside = await assign(1, '2026-10-19');
-  const inside2 = await assign(2, '2026-10-25');
-  await assign(0, '2026-10-26');
-  const week = await list(admin, '?from=2026-10-19&to=2026-10-25');
-  assert.deepEqual(week.map((a) => a.id).sort(), [inside.id, inside2.id].sort());
-
-  const bad = await admin.req('GET', '/api/assignments?from=yesterday&to=2026-10-25');
-  assert.equal(bad.status, 400);
-});
-
-test('no range returns unfinished + latest completed per chore', async () => {
+test('the list is every unfinished turn + the latest completed one per chore', async () => {
   const { admin, members, assign } = await setup();
   const old = await assign(1, '2026-10-05');
   const latest = await assign(1, '2026-10-12');
@@ -158,43 +128,37 @@ test('pendingSwap shows who was asked', async () => {
   assert.deepEqual(view.pendingSwap, { id: swapId, targetUserId: users[2].id, targetName: 'Jamie' });
 });
 
-test('archiving deletes unfinished assignments but keeps completed', async () => {
+test('admin edits a chore; bad input is a field error', async () => {
+  const { admin, chore } = await setup();
+  const ok = await admin.req('PATCH', `/api/chores/${chore.id}`, { title: 'Bins', frequency: 'daily' });
+  assert.equal(ok.status, 200);
+  assert.deepEqual(ok.body, { id: chore.id, title: 'Bins', frequency: 'daily' });
+  const bad = await admin.req('PATCH', `/api/chores/${chore.id}`, { title: '  ', frequency: 'daily' });
+  assert.equal(bad.status, 400);
+  assert.equal(bad.body.field, 'title');
+});
+
+test('deleting a chore removes its turns and their swap requests', async () => {
   const { admin, members, assign, chore, users } = await setup();
   const done = await assign(1, '2026-10-12');
   await members[0].req('POST', `/api/assignments/${done.id}/complete`);
   const open = await assign(1, today());
   addPendingSwap(open.id, users[1].id, users[2].id);
 
-  const res = await admin.req('PATCH', `/api/chores/${chore.id}`, { active: false });
-  assert.equal(res.status, 200);
-  assert.equal(res.body.active, false);
-  const ids = (await list(admin, '?from=2026-10-01&to=2026-12-31')).map((a) => a.id);
-  assert.deepEqual(ids, [done.id]);
-
-  const blocked = await admin.req('POST', '/api/assignments', { choreId: chore.id, userId: users[0].id, dueDate: today() });
-  assert.equal(blocked.status, 409);
-
-  const restored = await admin.req('PATCH', `/api/chores/${chore.id}`, { active: true });
-  assert.equal(restored.body.active, true);
-});
-
-test('editing a chore validates fields', async () => {
-  const { admin, chore } = await setup();
-  const ok = await admin.req('PATCH', `/api/chores/${chore.id}`, { title: 'Bins', frequency: 'daily' });
-  assert.equal(ok.body.title, 'Bins');
-  assert.equal(ok.body.frequency, 'daily');
-  const bad = await admin.req('PATCH', `/api/chores/${chore.id}`, { title: '  ' });
-  assert.equal(bad.status, 400);
-  assert.equal(bad.body.field, 'title');
+  assert.equal((await members[0].req('DELETE', `/api/chores/${chore.id}`)).status, 403);
+  assert.equal((await admin.req('DELETE', `/api/chores/${chore.id}`)).status, 204);
+  assert.deepEqual(await list(admin), []);
+  assert.equal(server.db.prepare('SELECT COUNT(*) AS n FROM swap_requests').get().n, 0);
+  assert.deepEqual((await admin.req('GET', '/api/household')).body.chores, []);
 });
 
 test("another household's assignment is 404", async () => {
-  const { assign, chore } = await setup();
+  const { assign } = await setup();
   const a = await assign(1, today());
   const other = await makeHousehold(server.base, ['Robin'], 'Other flat');
   assert.equal((await other.admin.req('PATCH', `/api/assignments/${a.id}`, { userId: other.users[0].id })).status, 404);
   assert.equal((await other.admin.req('POST', `/api/assignments/${a.id}/complete`)).status, 404);
-  assert.equal((await other.admin.req('PATCH', `/api/chores/${chore.id}`, { active: false })).status, 404);
+  assert.equal((await other.admin.req('DELETE', `/api/chores/${a.choreId}`)).status, 404);
   assert.deepEqual(await list(other.admin), []);
 });
 
@@ -203,6 +167,4 @@ test('impossible dates are refused', async () => {
   const res = await admin.req('POST', '/api/assignments', { choreId: chore.id, userId: users[0].id, dueDate: '2026-02-31' });
   assert.equal(res.status, 400);
   assert.equal(res.body.field, 'dueDate');
-  const range = await admin.req('GET', '/api/assignments?from=2026-02-30&to=2026-03-06');
-  assert.equal(range.status, 400);
 });

@@ -3,7 +3,7 @@ import { HttpError } from '../errors.js';
 import { transaction } from '../db.js';
 import { requireUser, requireHousehold, requireAdmin } from '../auth.js';
 
-// Takes someone out of their household (spec §5). Their unfinished chores
+// Takes someone out of their household. Their unfinished chores
 // become "Nobody", their pending swap requests are cancelled, and their
 // completed chores keep their name so the history stays true.
 export function removeFromHousehold(db, userId) {
@@ -62,8 +62,8 @@ export function householdRoutes(db) {
       'SELECT id, name, email, role FROM users WHERE household_id = ? ORDER BY id'
     ).all(householdId);
     const chores = db.prepare(
-      'SELECT id, title, frequency, active FROM chores WHERE household_id = ? ORDER BY id'
-    ).all(householdId).map((chore) => ({ ...chore, active: chore.active === 1 }));
+      'SELECT id, title, frequency FROM chores WHERE household_id = ? ORDER BY id'
+    ).all(householdId);
     res.json({ ...household, members, chores });
   });
 
@@ -81,29 +81,12 @@ export function householdRoutes(db) {
     res.status(201).json({ id: user.id, name: user.name, email: user.email, role: 'member' });
   });
 
-  // Used both for "Remove" (admin removes someone) and "Leave" (you remove yourself).
-  router.delete('/household/members/:id', requireHousehold, (req, res) => {
+  // Admin only: take someone out of the household.
+  router.delete('/household/members/:id', requireAdmin, (req, res) => {
     const member = memberFromParams(req);
-    const isSelf = member.id === req.user.id;
-    if (isSelf && req.user.role === 'admin') {
-      throw new HttpError(409, 'Make someone else admin first.');
-    }
-    if (!isSelf && req.user.role !== 'admin') {
-      throw new HttpError(403, "You don't have permission to do that.");
-    }
+    if (member.id === req.user.id) throw new HttpError(400, "You can't remove yourself.");
     removeFromHousehold(db, member.id);
     res.status(204).end();
-  });
-
-  router.post('/household/members/:id/make-admin', requireAdmin, (req, res) => {
-    const member = memberFromParams(req);
-    if (member.id === req.user.id) throw new HttpError(400, "You're already the admin.");
-    // Both changes or neither, so the household always has exactly one admin.
-    transaction(db, () => {
-      db.prepare("UPDATE users SET role = 'admin' WHERE id = ?").run(member.id);
-      db.prepare("UPDATE users SET role = 'member' WHERE id = ?").run(req.user.id);
-    });
-    res.json({ ...member, role: 'admin' });
   });
 
   return router;

@@ -8,7 +8,7 @@ export function renderTopbar(me) {
   document.getElementById('nav').hidden = !inHousehold;
   document.getElementById('who').replaceChildren(
     el('span', {}, inHousehold ? `${me.householdName} · ${me.name}${me.role === 'admin' ? ' (admin)' : ''}` : me.name),
-    el('button', { class: 'secondary small', onclick: logOut }, 'Log out'),
+    el('button', { class: 'secondary outline', onclick: logOut }, 'Log out'),
   );
 }
 

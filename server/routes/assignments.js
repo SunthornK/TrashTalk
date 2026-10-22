@@ -14,20 +14,14 @@ export function assignmentRoutes(db) {
   `);
 
   router.get('/assignments', requireHousehold, (req, res) => {
-    const { from, to } = req.query;
-    if (from || to) {
-      requireDate(from, 'from');
-      requireDate(to, 'to');
-    }
-    res.json(assignmentsQuery(db, req.user.householdId, { from, to }));
+    res.json(assignmentsQuery(db, req.user.householdId));
   });
 
   router.post('/assignments', requireAdmin, (req, res) => {
     const householdId = req.user.householdId;
-    const chore = db.prepare('SELECT id, active FROM chores WHERE id = ? AND household_id = ?')
+    const chore = db.prepare('SELECT id FROM chores WHERE id = ? AND household_id = ?')
       .get(Number(req.body?.choreId), householdId);
     if (!chore) throw new HttpError(400, 'Choose a chore.', 'choreId');
-    if (chore.active !== 1) throw new HttpError(409, 'This chore is archived.');
     const userId = requireMember(db, req.body?.userId, householdId);
     const dueDate = requireDate(req.body?.dueDate, 'dueDate');
 

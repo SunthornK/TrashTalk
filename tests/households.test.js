@@ -80,27 +80,17 @@ test('member cannot add members', async () => {
   assert.equal(res.status, 403);
 });
 
-test('make-admin swaps roles', async () => {
-  const { admin, members, users } = await makeHousehold(server.base, ['Alex', 'Sam']);
-  const res = await admin.req('POST', `/api/household/members/${users[1].id}/make-admin`);
-  assert.equal(res.status, 200);
-  assert.equal((await admin.req('GET', '/api/me')).body.role, 'member');
-  assert.equal((await members[0].req('GET', '/api/me')).body.role, 'admin');
-  const admins = server.db.prepare("SELECT COUNT(*) AS n FROM users WHERE role = 'admin'").get().n;
-  assert.equal(admins, 1);
-});
-
-test('admin cannot leave', async () => {
+test('admin cannot remove themselves', async () => {
   const { admin, users } = await makeHousehold(server.base, ['Alex', 'Sam']);
   const res = await admin.req('DELETE', `/api/household/members/${users[0].id}`);
-  assert.equal(res.status, 409);
-  assert.equal(res.body.error, 'Make someone else admin first.');
+  assert.equal(res.status, 400);
+  assert.equal(res.body.error, "You can't remove yourself.");
 });
 
-test('member cannot remove someone else', async () => {
+test('member cannot remove anyone', async () => {
   const { members, users } = await makeHousehold(server.base, ['Alex', 'Sam', 'Jamie']);
-  const res = await members[0].req('DELETE', `/api/household/members/${users[2].id}`);
-  assert.equal(res.status, 403);
+  assert.equal((await members[0].req('DELETE', `/api/household/members/${users[2].id}`)).status, 403);
+  assert.equal((await members[0].req('DELETE', `/api/household/members/${users[1].id}`)).status, 403);
 });
 
 test('admin cannot remove someone from another household', async () => {
@@ -110,8 +100,8 @@ test('admin cannot remove someone from another household', async () => {
   assert.equal(res.status, 404);
 });
 
-test('member leaving unassigns unfinished chores, keeps completed ones, cancels pending swaps', async () => {
-  const { members, users } = await makeHousehold(server.base, ['Alex', 'Sam', 'Jamie']);
+test('removing a member unassigns unfinished chores, keeps completed ones, cancels pending swaps', async () => {
+  const { admin, members, users } = await makeHousehold(server.base, ['Alex', 'Sam', 'Jamie']);
   const [alexId, samId, jamieId] = users.map((u) => u.id);
   const db = server.db;
   const now = new Date().toISOString();
@@ -131,7 +121,7 @@ test('member leaving unassigns unfinished chores, keeps completed ones, cancels 
     "INSERT INTO swap_requests (assignment_id, requester_id, target_user_id, status, created_at) VALUES (?, ?, ?, 'pending', ?)"
   ).run(alexOpen, alexId, samId, now).lastInsertRowid);
 
-  const res = await members[0].req('DELETE', `/api/household/members/${samId}`);
+  const res = await admin.req('DELETE', `/api/household/members/${samId}`);
   assert.equal(res.status, 204);
 
   const get = db.prepare('SELECT user_id, status FROM assignments WHERE id = ?');

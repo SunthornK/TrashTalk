@@ -28,7 +28,7 @@ export function el(tag, attrs = {}, ...children) {
 export function toast(message, kind = 'ok') {
   const box = document.getElementById('toasts');
   if (!box) return;
-  const note = el('div', { class: `toast toast--${kind} wobble`, role: kind === 'error' ? 'alert' : 'status' }, message);
+  const note = el('div', { class: `toast toast--${kind}`, role: kind === 'error' ? 'alert' : 'status' }, message);
   box.append(note);
   setTimeout(() => note.remove(), 4000);
 }
@@ -43,8 +43,8 @@ export function showFieldError(form, field, message) {
   let note = document.getElementById(id);
   if (!note) {
     note = el('small', { id, class: 'field-error' });
-    // In a one-line form (input + button side by side), put it under the whole line.
-    (input.closest('.inline-form') ?? input).after(note);
+    // In a one-line form (input + button side by side), put it under the whole group.
+    (input.closest('[role="group"]') ?? input).after(note);
   }
   note.textContent = message;
   input.setAttribute('aria-invalid', 'true');
@@ -97,9 +97,9 @@ export function handleError(err, form) {
 // api() call). If it throws, the error is shown inside the dialog and the
 // dialog stays open; if it succeeds, the dialog closes.
 // Resolves to true if it was submitted successfully, false if cancelled.
-export function openFormDialog({ title, fields, submitLabel, submitClass = 'primary', onSubmit }) {
+export function openFormDialog({ title, fields, submitLabel, onSubmit }) {
   return new Promise((resolve) => {
-    const submit = el('button', { type: 'submit', class: submitClass }, submitLabel);
+    const submit = el('button', { type: 'submit' }, submitLabel);
     const form = el('form', { method: 'dialog', novalidate: true },
       el('h2', {}, title),
       fields,
@@ -108,7 +108,7 @@ export function openFormDialog({ title, fields, submitLabel, submitClass = 'prim
         submit,
       ),
     );
-    const dialog = el('dialog', {}, el('article', { class: 'wobble' }, form));
+    const dialog = el('dialog', {}, el('article', {}, form));
     let succeeded = false;
 
     form.addEventListener('submit', async (event) => {
@@ -136,11 +136,11 @@ export function openFormDialog({ title, fields, submitLabel, submitClass = 'prim
 export function confirmDialog(message, confirmLabel) {
   return new Promise((resolve) => {
     const dialog = el('dialog', {},
-      el('article', { class: 'wobble' },
+      el('article', {},
         el('p', {}, message),
         el('footer', {},
           el('button', { class: 'secondary', value: 'cancel', onclick: () => dialog.close('cancel') }, 'Cancel'),
-          el('button', { class: 'danger', value: 'ok', onclick: () => dialog.close('ok') }, confirmLabel),
+          el('button', { class: 'contrast', value: 'ok', onclick: () => dialog.close('ok') }, confirmLabel),
         ),
       ),
     );

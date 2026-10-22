@@ -6,11 +6,11 @@
   <title>Chores · Trash Talk</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗑️</text></svg>">
   <link rel="stylesheet" href="/vendor/pico.min.css">
-  <link rel="stylesheet" href="/css/theme.css">
+  <link rel="stylesheet" href="/css/style.css">
   <script type="module" src="/js/chores/main.js"></script>
 </head>
-<body class="app">
-  <header class="topbar">
+<body>
+  <header class="topbar container">
     <a class="logo" href="/">Trash Talk</a>
     <nav id="nav" hidden aria-label="Main">
       <a href="/" aria-current="page">Chores</a>
@@ -19,44 +19,26 @@
     <div class="who" id="who"></div>
   </header>
 
-  <div class="page">
-    <div id="banner"></div>
-    <div class="layout">
-      <div class="main-col">
-        <div id="controls" class="controls" hidden>
-          <div class="toggle" role="group" aria-label="View">
-            <button type="button" data-view="week">Week</button>
-            <button type="button" data-view="chores">Chores</button>
-          </div>
-          <div class="week-nav" id="week-nav">
-            <button type="button" id="prev-week" class="small" aria-label="Previous week">◀</button>
-            <span id="week-label" aria-live="polite"></span>
-            <button type="button" id="next-week" class="small" aria-label="Next week">▶</button>
-            <button type="button" id="this-week" class="link">This week</button>
-          </div>
-          <span class="spacer"></span>
-          <label class="inline">Show
-            <select id="filter">
-              <option value="everyone">Everyone</option>
-              <option value="mine">Just me</option>
-              <option value="waiting">Waiting on someone</option>
-              <option value="needs">Needs a new person</option>
-            </select>
-          </label>
-          <label class="inline" id="sort-wrap">Sort
-            <select id="sort">
-              <option value="due">Due date</option>
-              <option value="name">Chore name</option>
-            </select>
-          </label>
-        </div>
-        <div id="progress-narrow"></div>
-        <main id="content">
-          <p class="muted" aria-busy="true">Loading…</p>
-        </main>
-      </div>
-      <aside id="side" aria-label="Requests and this week"></aside>
+  <div class="container">
+    <section id="requests" aria-label="Requests for you"></section>
+    <div id="controls" class="controls" hidden>
+      <label>Show
+        <select id="filter">
+          <option value="everyone">Everyone</option>
+          <option value="mine">Just me</option>
+          <option value="waiting">Waiting on someone</option>
+        </select>
+      </label>
+      <label>Sort
+        <select id="sort">
+          <option value="due">Due date</option>
+          <option value="name">Chore name</option>
+        </select>
+      </label>
     </div>
+    <main id="content">
+      <p aria-busy="true">Loading…</p>
+    </main>
   </div>
 
   <div id="toasts" aria-live="polite"></div>

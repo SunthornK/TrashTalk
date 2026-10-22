@@ -4,6 +4,8 @@ A web app for roommates to share household chores. Everyone can see who has whic
 
 Web Development course project by Sunthorn Kompita and Teerapat Trepopsakulsin.
 
+> **Branch `minimal`:** a reduced version with only what the course brief asks for, styled with plain Pico.css. The full version (week view, side panel, history, doodle style) is on `main`.
+
 ## Setup
 
 Requirements: **Node.js 22.9 or newer** (check with `node --version`).
@@ -34,31 +36,22 @@ All demo accounts use the password `password123`. The data is synthetic.
 | `sam@example.com`, `jamie@example.com`, `robin@example.com` | members of Flat 4B |
 | `kim@example.com` | registered, but not in a household |
 
-The demo dates are relative to the day you seed. Alex always has an overdue chore, a request from Jamie to answer, and a request waiting on Sam. One chore belongs to nobody, and the past two weeks have history.
+The demo dates are relative to the day you seed. Alex always has an overdue chore, a request from Jamie to answer, and a request waiting on Sam. One chore belongs to nobody.
 
 **Try the live handoff:** log in as Alex in a normal window and as Jamie in a private window, side by side. Alex clicks **Can't do it…** on a chore and asks Jamie. Within about 10 seconds Jamie's page shows the request.
 
 ## Features
 
-- **Chores page**, with two views of the same data:
-  - **Chores**: one card per chore, showing who has it now, when it's due, and who's next.
-  - **Week**: a fridge-style chart with people × days. Past weeks are the history ("late", "via Jamie").
+- **Chores page:** one card per chore, showing who has it now, when it's due, its status in words, and who's next.
 - **Handoff requests:**
-  - "Can't do it…" → pick a roommate (with how many chores each has this week) → optional message.
+  - "Can't do it…" → pick a roommate → optional message.
   - The roommate can **Take it** or say **No**. The requester can cancel.
   - At most one pending request per chore. The chore stays yours until someone accepts.
-- **Filter** (everyone / just me / waiting on someone / needs a new person), **sort** (due date / name), **group** (by week / by chore).
-- **This week so far:** done / assigned per person.
-- **Admin, on the same page:**
-  - assign the next turn, with person and date pre-filled,
-  - reassign overdue or unassigned chores,
-  - add chores.
-- **Household page:**
-  - add members by email,
-  - hand over the admin role, remove members, leave,
-  - edit, archive and restore chores.
-- **Overdue** is computed, never stored. When someone leaves, their unfinished chores become "Nobody" for the admin to reassign.
-- **Loading, success, empty, validation-error and server-error states** on every action, inline field errors, and a layout that works from phone to laptop.
+- **Filter** (everyone / just me / waiting on someone) and **sort** (due date / name).
+- **Admin, on the same page:** add, edit and delete chores; assign a turn; reassign an unfinished turn.
+- **Household page:** the members; the admin adds people by email and removes them.
+- **Overdue** is computed, never stored. When someone is removed, their unfinished chores become "Nobody" for the admin to reassign.
+- **Loading, success, empty, validation-error and server-error states** on every action, with inline field errors.
 
 ## Technical description
 
@@ -68,7 +61,7 @@ The demo dates are relative to the day you seed. Alex always has an overdue chor
 Browser: HTML + CSS + plain JavaScript modules  ──fetch (JSON)──▶  Node + Express  ──SQL──▶  SQLite (one file)
 ```
 
-- **Client:** plain JavaScript only (ES modules, `fetch`, DOM APIs), no frameworks. Styling is Pico.css plus our own theme (`public/css/theme.css`).
+- **Client:** plain JavaScript only (ES modules, `fetch`, DOM APIs), no frameworks. Styling is Pico.css plus a small layout file (`public/css/style.css`).
 - **Server:** Node.js + Express 5. The only runtime dependencies are `express` and `better-sqlite3`. Express serves both the JSON API (`/api/...`) and the static files.
 - **Database:** SQLite via `better-sqlite3`. `server/db.js` is the only file that uses the driver.
 
@@ -79,7 +72,7 @@ Browser: HTML + CSS + plain JavaScript modules  ──fetch (JSON)──▶  Nod
 | `households` | a shared flat |
 | `users` | a person: name, unique email, password hash, household, role (`admin` / `member`) |
 | `sessions` | a logged-in browser (stores only a hash of the token) |
-| `chores` | a recurring task: title, frequency, active/archived |
+| `chores` | a recurring task: title, frequency (the `active` column is unused on this branch) |
 | `assignments` | one turn of a chore: who, due date, assigned/completed |
 | `swap_requests` | a handoff request: assignment, requester, target, message, status |
 
@@ -105,15 +98,15 @@ If either changes 0 rows, someone else got there first (for example, the request
 ### Client
 
 - **One state object, re-rendered:** the Chores page keeps everything in one `state` object (`public/js/chores/state.js`). After every action it reloads from the server and re-renders, so the page always matches the database.
-- **Live updates:** every 10 seconds it polls. It only redraws if the data changed and no dialog is open, so text being typed is never lost. Keyboard focus is kept on the same button across redraws.
-- **Tested logic:** the decisions about what to show (status labels, filters, sorting, the week grid, the "assign next" suggestion) are pure functions in `public/js/chores/filters.js` and `status.js`, unit-tested like the server.
+- **Live updates:** every 10 seconds it polls. It only redraws if the data changed and no dialog is open, so text being typed is never lost.
+- **Tested logic:** building, filtering and sorting the cards, and the status labels, are pure functions in `cards-view.js` and `status.js`, unit-tested like the server.
 
 ### Tests
 
-`npm test` runs 86 tests:
+`npm test` runs 72 tests:
 - **API:** each test starts the real app on a fresh in-memory database.
 - **Client logic:** the pure functions behind what the page shows.
-- **Covered cases** include duplicate emails in different letter case, a chore due today not counting as overdue, another household's IDs, two people acting on the same request at once, and archiving.
+- **Covered cases** include duplicate emails in different letter case, a chore due today not counting as overdue, another household's IDs, two people acting on the same request at once, and deleting a chore.
 
 ### Project structure
 
@@ -121,9 +114,9 @@ If either changes 0 rows, someone else got there first (for example, the request
 server/          index.js (start), app.js (middleware + routes), db.js, schema.sql,
                  auth.js (passwords, sessions, guards), views.js (SQL → JSON), validate.js,
                  routes/ (auth, households, chores, assignments, swaps), seed.js
-public/          index.html (Chores), household.html, login.html, css/, vendor/ (Pico), fonts/
+public/          index.html (Chores), household.html, login.html, css/, vendor/ (Pico)
 public/js/       api.js (fetch wrapper), ui.js (DOM + feedback helpers), dates.js (shared with the server),
-                 topbar.js, login.js, household.js, chores/ (state, views, dialogs, side panel)
+                 topbar.js, login.js, household.js, chores/ (state, cards, requests, dialogs)
 tests/           API and client-logic tests
 docs/            design, build plan, decisions log, study guide
 ```
@@ -132,21 +125,20 @@ docs/            design, build plan, decisions log, study guide
 
 | Requirement | Where |
 |---|---|
-| Create, modify and remove DOM elements | cards, week chips, requests panel, dialogs, all built with `el()` and redrawn with `replaceChildren` |
-| Different user events | `click`, `submit`, `change`, `keydown` (arrow keys in tabs, Esc in dialogs) |
+| Create, modify and remove DOM elements | cards, requests, dialogs, all built with `el()` and redrawn with `replaceChildren` |
+| Different user events | `click`, `submit`, `change` (filter, sort, radio buttons), `close` (dialogs, Esc) |
 | Feedback without reloads | every action uses `fetch`, then shows a toast or inline error and redraws |
 | A substantial interactive feature | the handoff flow: dialog → request → accept/reject/cancel, live in other browsers |
 | Interface kept in sync with stored data | reload + re-render after every action, plus 10-second polling |
-| Async requests, relational DB, CRUD | JSON API over `fetch`; SQLite with 6 related tables; create/read/update/archive chores, assignments, requests and members |
+| Async requests, relational DB, CRUD | JSON API over `fetch`; SQLite with 6 related tables; create/read/update/delete chores; create/read/update assignments and requests; add/remove members |
 | Loading, success, empty, validation-error, server-error states | "Loading…", toasts, empty messages, field errors, "Something went wrong, try again" (page stays usable) |
 | Users and administrators | members manage their own chores and requests; the household admin manages members and chores, all checked on the server |
 | Authentication with cookies and securely stored passwords | scrypt + salt, HttpOnly SameSite session cookie, hashed session tokens |
-| Search, filtering, sorting or grouping | filter, sort, and grouping by week or by chore |
-| Responsive and accessible | works from 360px; labels on every input, real buttons, `<dialog>`, ARIA tabs, status always as text, visible keyboard focus |
+| Search, filtering, sorting or grouping | filter (everyone / just me / waiting) and sort (due date / name); cards grouped by chore |
+| Responsive and accessible | works from 360px; labels on every input, real buttons, `<dialog>`, status always as text |
 
 More detail: [design](docs/superpowers/specs/2026-10-20-trashtalk-design.md) · [decision log](docs/decisions.md) · [how it works](docs/how-it-works.md)
 
 ## Credits
 
 - [Pico CSS](https://picocss.com) v2.1.1 (MIT), included in `public/vendor/`.
-- [Gloria Hallelujah](https://fonts.google.com/specimen/Gloria+Hallelujah) font (SIL Open Font License), included in `public/fonts/`.

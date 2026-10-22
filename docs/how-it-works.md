@@ -1,5 +1,7 @@
 # How Trash Talk works: a study guide
 
+> **On the `minimal` branch:** the week view, the side panel (progress bars, "Needs a new person"), archive/restore, make-admin, leave, the Household tabs, "via"/"was late" history and focus restore were removed. Chores can be edited and deleted instead of archived. Sections about those parts describe `main`, not this branch.
+
 This guide explains the project in plain language, for the presentation. It grows with each build task. Each part has:
 - **The idea:** what it is, with an everyday comparison
 - **In our code:** where it lives

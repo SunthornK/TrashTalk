@@ -35,7 +35,6 @@ test('request → accept moves the assignment to the target', async () => {
   assert.equal(acc.status, 200);
   const after = await viewOf(jamie, assignment.id);
   assert.equal(after.userName, 'Jamie');
-  assert.equal(after.viaName, 'Sam');
   assert.equal(after.pendingSwap, null);
 });
 
